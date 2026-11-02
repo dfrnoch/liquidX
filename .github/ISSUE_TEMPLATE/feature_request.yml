@@ -1,0 +1,15 @@
+name: Feature request
+description: Suggest an idea
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like LiquidX to do?
+    validations:
+      required: true
+  - type: textarea
+    id: api
+    attributes:
+      label: X API notes
+      description: If you know which X API v2 endpoint or scope it needs, mention it.

@@ -1,0 +1,28 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Steps to reproduce, what you expected, and what you saw. Screenshots help.
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform and OS version
+      placeholder: iPhone 17, iOS 27.1 / MacBook Air M4, macOS 27.0
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options: [Signed in with my X app, Demo]
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else?
+      description: Never paste tokens, Client IDs of others, or private content.
