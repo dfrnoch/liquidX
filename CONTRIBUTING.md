@@ -21,7 +21,8 @@ native controls, Liquid Glass where it belongs, and no lag while scrolling.
 - **Swift 6, zero warnings.** Warnings are errors in the app target. Keep
   strict concurrency clean without `@unchecked Sendable` or
   `nonisolated(unsafe)`.
-- **No third-party dependencies** and no web views.
+- **No third-party dependencies.** The only web view is the optional x.com
+  login (see docs/web-session.md); everything else is native.
 - **Prefer system components.** Use `TabView`, `NavigationStack`, toolbars,
   `.glassEffect`, `.buttonStyle(.glass)` and `GlassEffectContainer`; avoid custom
   blur imitations. Put glass on controls and navigation, not on content.

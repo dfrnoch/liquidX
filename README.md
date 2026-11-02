@@ -2,7 +2,7 @@
 
 <p align="center">
   <b>A native X client for iPhone, iPad and Mac, built around Liquid Glass.</b><br>
-  100% Swift and SwiftUI. No web views, no third-party dependencies.
+  100% Swift and SwiftUI. No third-party dependencies.
 </p>
 
 <p align="center">
@@ -90,6 +90,15 @@ You can also put the Client ID in `Config/Local.xcconfig`
 
 Scopes requested: `tweet.read tweet.write users.read like.read like.write
 follows.read follows.write bookmark.read bookmark.write offline.access`.
+
+### Optional: sign in with your x.com login (unofficial)
+
+The official API now costs money, so LiquidX can also sign in with your normal
+x.com login and use the same private API the x.com website uses. It's free and
+adds the **For you** feed, but **it is against X's Terms of Service**: X may
+rate limit, lock or suspend your account, and it breaks whenever x.com changes.
+It is clearly labelled in the app and off by default. Details:
+[docs/web-session.md](docs/web-session.md).
 
 ## Build from source
 
