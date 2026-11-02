@@ -31,8 +31,12 @@ public enum RichText {
         if stripLeadingMentions {
             text = text.replacing(/^(?:@\w{1,15}\s+)+/, with: "")
         }
-        for short in hidden {
-            text = text.replacingOccurrences(of: short, with: "")
+        if !hidden.isEmpty {
+            for short in hidden {
+                text = text.replacingOccurrences(of: short, with: "")
+            }
+            // Removing a link mid-text leaves doubled or trailing spaces behind.
+            text = text.replacing(/[ \t]{2,}/, with: " ").replacing(/\ +\n/, with: "\n")
         }
         text = text.trimmingCharacters(in: .whitespacesAndNewlines)
 

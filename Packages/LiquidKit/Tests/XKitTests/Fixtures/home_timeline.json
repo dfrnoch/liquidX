@@ -1,0 +1,74 @@
+{
+  "data": [
+    {
+      "id": "1850000000000000003",
+      "text": "RT @orbitlab: Aurora tonight! https://t.co/photo1",
+      "author_id": "11",
+      "created_at": "2026-11-02T10:05:00.000Z",
+      "conversation_id": "1850000000000000003",
+      "referenced_tweets": [{ "type": "retweeted", "id": "1850000000000000001" }],
+      "public_metrics": { "retweet_count": 0, "reply_count": 0, "like_count": 0, "quote_count": 0 }
+    },
+    {
+      "id": "1850000000000000004",
+      "text": "So good &amp; worth reading https://t.co/quote1 https://t.co/link1 #SwiftUI cc @orbitlab",
+      "author_id": "11",
+      "created_at": "2026-11-02T10:06:00.000Z",
+      "conversation_id": "1850000000000000004",
+      "referenced_tweets": [{ "type": "quoted", "id": "1850000000000000002" }],
+      "entities": {
+        "urls": [
+          { "start": 27, "end": 50, "url": "https://t.co/quote1", "expanded_url": "https://x.com/swiftweekly/status/1850000000000000002", "display_url": "x.com/swiftweekly/st…" },
+          { "start": 51, "end": 74, "url": "https://t.co/link1", "expanded_url": "https://example.com/article", "display_url": "example.com/article", "title": "An &quot;article&quot;", "description": "About things", "images": [{ "url": "https://pbs.twimg.com/news_img/a.jpg", "width": 800, "height": 400 }] }
+        ]
+      },
+      "public_metrics": { "retweet_count": 2, "reply_count": 3, "like_count": 40, "quote_count": 1, "bookmark_count": 5, "impression_count": 1200 }
+    },
+    {
+      "id": "1850000000000000005",
+      "text": "@orbitlab @swiftweekly Thanks, this is the short version…",
+      "author_id": "12",
+      "created_at": "2026-11-02T10:07:00Z",
+      "conversation_id": "1850000000000000001",
+      "in_reply_to_user_id": "13",
+      "referenced_tweets": [{ "type": "replied_to", "id": "1850000000000000001" }],
+      "note_tweet": { "text": "@orbitlab @swiftweekly Thanks, this is the full long version of the post." },
+      "public_metrics": { "retweet_count": 0, "reply_count": 0, "like_count": 1, "quote_count": 0 }
+    }
+  ],
+  "includes": {
+    "users": [
+      { "id": "11", "name": "Ava", "username": "avalind", "profile_image_url": "https://pbs.twimg.com/profile_images/1/a_normal.jpg", "verified": true, "verified_type": "blue" },
+      { "id": "12", "name": "Mira", "username": "miraokafor" },
+      { "id": "13", "name": "Orbit Lab", "username": "orbitlab", "verified_type": "business", "protected": false },
+      { "id": "14", "name": "Swift Weekly", "username": "swiftweekly" }
+    ],
+    "tweets": [
+      {
+        "id": "1850000000000000001",
+        "text": "Aurora tonight! https://t.co/photo1",
+        "author_id": "13",
+        "created_at": "2026-11-02T09:00:00.000Z",
+        "attachments": { "media_keys": ["3_1"] },
+        "entities": { "urls": [{ "start": 16, "end": 39, "url": "https://t.co/photo1", "expanded_url": "https://x.com/orbitlab/status/1850000000000000001/photo/1", "display_url": "pic.x.com/abc", "media_key": "3_1" }] },
+        "public_metrics": { "retweet_count": 2100, "reply_count": 380, "like_count": 18400, "quote_count": 12, "impression_count": 1220000 }
+      },
+      {
+        "id": "1850000000000000002",
+        "text": "Issue #412 is out",
+        "author_id": "14",
+        "created_at": "2026-11-01T09:00:00.000Z"
+      }
+    ],
+    "media": [
+      { "media_key": "3_1", "type": "photo", "url": "https://pbs.twimg.com/media/abc.jpg", "width": 1200, "height": 800, "alt_text": "Green sky" },
+      { "media_key": "7_2", "type": "video", "preview_image_url": "https://pbs.twimg.com/ext_tw_video_thumb/x.jpg", "duration_ms": 61500,
+        "variants": [
+          { "content_type": "application/x-mpegURL", "url": "https://video.twimg.com/x.m3u8" },
+          { "bit_rate": 832000, "content_type": "video/mp4", "url": "https://video.twimg.com/low.mp4" },
+          { "bit_rate": 2176000, "content_type": "video/mp4", "url": "https://video.twimg.com/high.mp4" }
+        ] }
+    ]
+  },
+  "meta": { "result_count": 3, "newest_id": "1850000000000000005", "oldest_id": "1850000000000000003", "next_token": "7140dibdnow9c7btw4" }
+}

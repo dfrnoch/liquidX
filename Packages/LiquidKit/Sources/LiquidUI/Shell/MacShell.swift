@@ -6,17 +6,10 @@ import XKit
 /// when the window is wide enough, a "What's happening" column with search.
 struct MacShell: View {
     @Environment(Session.self) private var session
+    /// The trends column only appears when the window can afford it.
+    @State private var showsSidebar = true
 
     var body: some View {
-        ViewThatFits(in: .horizontal) {
-            layout(showsSidebar: true)
-            layout(showsSidebar: false)
-        }
-        .background(Theme.canvas)
-        .frame(minWidth: 620, minHeight: 560)
-    }
-
-    private func layout(showsSidebar: Bool) -> some View {
         HStack(alignment: .top, spacing: 20) {
             MacRail()
             column
@@ -24,10 +17,16 @@ struct MacShell: View {
             if showsSidebar {
                 TrendsColumn()
                     .frame(width: 330)
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
             }
         }
         .padding(.horizontal, 16)
-        .frame(maxWidth: showsSidebar ? .infinity : nil)
+        .frame(maxWidth: .infinity)
+        .background(Theme.canvas)
+        .onGeometryChange(for: Bool.self) { $0.size.width >= 1_080 } action: { wide in
+            withAnimation(.snappy) { showsSidebar = wide }
+        }
+        .frame(minWidth: 640, minHeight: 560)
     }
 
     /// One stack per section; switching keeps each section's path.
@@ -213,6 +212,7 @@ private struct TrendsColumn: View {
                                 .foregroundStyle(.secondary)
                             Button("Sign In with X") { session.signOut() }
                                 .buttonStyle(.glassProminent)
+                                .tint(Theme.accent)
                                 .padding(.top, 4)
                         }
                         .padding(16)
@@ -227,6 +227,7 @@ private struct TrendsColumn: View {
             .padding(.vertical, 12)
         }
         .scrollIndicators(.never)
+        .scrollEdgeEffectHidden(true, for: .top)
     }
 
     private func card<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
