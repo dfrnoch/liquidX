@@ -57,6 +57,11 @@ public final class AppModel {
 
     func start() async {
         guard case .launching = phase else { return }
+        #if DEBUG
+        if UserDefaults.standard.bool(forKey: "LiquidXKeychainSelfTest") {
+            Self.keychainSelfTest()
+        }
+        #endif
         if launchDemo {
             await startDemo()
         } else if let stored = credentials.load() {
@@ -65,6 +70,23 @@ public final class AppModel {
             phase = .signedOut
         }
     }
+
+    #if DEBUG
+    /// Debug-only: proves tokens survive a save/load/delete round trip in this
+    /// build's real Keychain context (sandbox, signing), using a separate service.
+    private static func keychainSelfTest() {
+        let store = KeychainCredentialStore(service: "dev.frnoch.liquidx.selftest")
+        let sample = StoredCredentials(
+            clientID: "self-test",
+            tokens: OAuthTokens(accessToken: "a", refreshToken: "r", expiresAt: .now.addingTimeInterval(60), scope: nil)
+        )
+        store.save(sample)
+        let loaded = store.load()
+        store.delete()
+        let deleted = store.load() == nil
+        FileHandle.standardError.write(Data("LiquidX keychain self-test: saved+loaded=\(loaded == sample) deleted=\(deleted)\n".utf8))
+    }
+    #endif
 
     func startDemo() async {
         await activate(DemoService())

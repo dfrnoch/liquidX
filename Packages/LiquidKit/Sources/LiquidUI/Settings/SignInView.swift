@@ -94,6 +94,15 @@ struct SignInView: View {
         .sheet(isPresented: $isShowingClientID) {
             ClientIDSheet(model: model)
         }
+        #if DEBUG
+        .task {
+            // Debug-only: start the real OAuth flow on launch, for testing the
+            // sign-in sheet without UI automation.
+            if UserDefaults.standard.bool(forKey: "LiquidXAutoSignIn"), !model.effectiveClientID.isEmpty {
+                await model.signIn(using: webAuthenticationSession)
+            }
+        }
+        #endif
         #if os(macOS)
         .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
         .navigationTitle("")
