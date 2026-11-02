@@ -35,6 +35,13 @@ xcodebuild -project LiquidX.xcodeproj -scheme LiquidX -destination 'platform=iOS
 xcrun xcresulttool export attachments --path build/tour.xcresult --output-path build/tour
 ```
 
+`ScrollPerformanceUITests` measures home-timeline scrolling. The simulator only
+reports duration; hitch time ratio needs a physical device.
+
+Debug-only launch arguments: `-LiquidXAutoSignIn YES` starts the OAuth flow on
+launch (needs a Client ID); `-LiquidXKeychainSelfTest YES` writes the Keychain
+round-trip result to stderr.
+
 Launch arguments: `-LiquidXDemo YES`, `-LiquidXAppearance dark|light|system`,
 `-LiquidXSection home|notifications|bookmarks|profile|search`,
 `-LiquidXOpenProfile <username>`, `-LiquidXUITesting YES` (in-memory credentials).
