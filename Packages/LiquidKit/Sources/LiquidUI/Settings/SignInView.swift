@@ -67,6 +67,7 @@ struct SignInView: View {
                             }
                             .buttonStyle(.glass)
                             .controlSize(.extraLarge)
+                            .tint(.white)
                         }
                     }
 
@@ -93,6 +94,10 @@ struct SignInView: View {
         .sheet(isPresented: $isShowingClientID) {
             ClientIDSheet(model: model)
         }
+        #if os(macOS)
+        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+        .navigationTitle("")
+        #endif
     }
 }
 
