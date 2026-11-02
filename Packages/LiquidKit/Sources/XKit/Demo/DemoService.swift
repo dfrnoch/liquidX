@@ -13,10 +13,13 @@ public actor DemoService: XService {
     private var bookmarked: Set<String> = []
     private var following: Set<String>
     private var nextID = 9_000
+    /// Posts that "arrive" one by one on refresh, so the demo feels alive.
+    private var arrivals: [XPost]
 
     public init(latency: Duration = .milliseconds(350), now: Date = .now) {
         self.latency = latency
         home = DemoData.timeline(now: now)
+        arrivals = DemoData.arrivals(now: now)
         following = Set(DemoData.people.prefix(6).map(\.id))
     }
 
@@ -42,6 +45,11 @@ public actor DemoService: XService {
 
     public func homeTimeline(_ page: PageRequest, filter: HomeFilter) async throws -> TimelinePage {
         try await pause()
+        if case .newest(.some) = page, !arrivals.isEmpty {
+            var post = arrivals.removeFirst()
+            post.createdAt = .now
+            home.insert(XTimelineItem(post), at: 0)
+        }
         let items = home.filter { item in
             !(filter.hideReposts && item.repostedBy != nil) && !(filter.hideReplies && !item.post.replyingTo.isEmpty)
         }

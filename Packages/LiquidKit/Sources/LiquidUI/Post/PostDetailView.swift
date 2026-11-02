@@ -26,6 +26,7 @@ struct PostDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .safeAreaBar(edge: .bottom) { replyBar }
+        .scrollEdgeEffectStyle(.hard, for: .bottom)
         .task { await loadReplies() }
         .refreshable { await loadReplies() }
     }

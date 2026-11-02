@@ -5,6 +5,7 @@ public import Foundation
 public enum AppLink: Hashable, Sendable {
     case user(String)
     case search(String)
+    case post(String)
 
     public static let scheme = "liquidx"
 
@@ -18,6 +19,9 @@ public enum AppLink: Hashable, Sendable {
         case .search(let query):
             components.host = "search"
             components.queryItems = [URLQueryItem(name: "q", value: query)]
+        case .post(let id):
+            components.host = "post"
+            components.path = "/\(id)"
         }
         return components.url!
     }
@@ -34,17 +38,26 @@ public enum AppLink: Hashable, Sendable {
                 .queryItems?.first { $0.name == "q" }?.value
             guard let query, !query.isEmpty else { return nil }
             self = .search(query)
+        case "post":
+            let id = url.path().trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            guard !id.isEmpty, id.allSatisfy(\.isNumber) || id.hasPrefix("demo-") else { return nil }
+            self = .post(id)
         default:
             return nil
         }
     }
 
-    /// Recognizes x.com / twitter.com profile links so they open in the app too.
+    /// Recognizes x.com / twitter.com profile and post links so they open in the app too.
     public init?(webURL url: URL) {
         guard let host = url.host()?.lowercased(),
               ["x.com", "www.x.com", "twitter.com", "www.twitter.com", "mobile.twitter.com"].contains(host)
         else { return nil }
         let parts = url.path().split(separator: "/")
+        // /<username>/status/<id>[/photo/1]
+        if parts.count >= 3, parts[1] == "status", parts[2].allSatisfy(\.isNumber) {
+            self = .post(String(parts[2]))
+            return
+        }
         guard parts.count == 1 else { return nil }
         let name = String(parts[0])
         let reserved: Set<String> = ["home", "explore", "search", "i", "settings", "messages", "notifications", "compose"]

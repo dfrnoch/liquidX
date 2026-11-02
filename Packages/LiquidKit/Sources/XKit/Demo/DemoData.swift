@@ -174,6 +174,20 @@ enum DemoData {
         return posts
     }
 
+    static func arrivals(now: Date) -> [XPost] {
+        [
+            make("3001", "orbitlab", minutesAgo: 0, now: now,
+                 "Update: the aurora is visible right now across the whole north. Go outside!",
+                 media: [photo("aurora-live", 1600, 1067)], replies: 12, reposts: 90, likes: 640, views: 8_100),
+            make("3002", "theom", minutesAgo: 0, now: now,
+                 "Pushed a Lanternfall build with the new glass menus. Feels so much calmer.",
+                 replies: 3, reposts: 8, likes: 77, views: 1_900),
+            make("3003", "noorhaddad", minutesAgo: 0, now: now,
+                 "Small joys: a timeline that keeps your place when new posts arrive.",
+                 replies: 6, reposts: 21, likes: 230, views: 4_400),
+        ]
+    }
+
     static func mentions(now: Date) -> [XTimelineItem] {
         [
             XTimelineItem(make("4001", "miraokafor", minutesAgo: 9, now: now,

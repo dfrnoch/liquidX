@@ -34,7 +34,10 @@ struct AppLinkTests {
     @Test func recognizesProfileWebLinks() {
         #expect(AppLink(webURL: URL(string: "https://x.com/miraokafor")!) == .user("miraokafor"))
         #expect(AppLink(webURL: URL(string: "https://twitter.com/home")!) == nil)
-        #expect(AppLink(webURL: URL(string: "https://x.com/a/status/1")!) == nil)
+        #expect(AppLink(webURL: URL(string: "https://x.com/a/status/1")!) == .post("1"))
+        #expect(AppLink(webURL: URL(string: "https://twitter.com/a/status/42/photo/1")!) == .post("42"))
+        #expect(AppLink(webURL: URL(string: "https://x.com/a/status/abc")!) == nil)
+        #expect(AppLink(url: AppLink.post("123").url) == .post("123"))
         #expect(AppLink(webURL: URL(string: "https://example.com/a")!) == nil)
     }
 }
@@ -112,7 +115,10 @@ struct DemoServiceTests {
 
         _ = try await service.createPost(text: "Hello", replyingTo: nil)
         let refreshed = try await service.homeTimeline(.newest(since: first.items[0].id), filter: HomeFilter())
-        #expect(refreshed.items.map(\.post.plainText) == ["Hello"])
+        // A demo refresh also "receives" one new post from someone else.
+        #expect(refreshed.items.count == 2)
+        #expect(refreshed.items[0].post.author.username == "orbitlab")
+        #expect(refreshed.items[1].post.plainText == "Hello")
     }
 
     @Test func filtersRepostsAndReplies() async throws {

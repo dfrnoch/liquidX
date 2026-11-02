@@ -27,6 +27,10 @@ final class Session {
     var toast: Toast?
     var searchText = ""
     var trends: [XTrend] = []
+    /// Bumped when the current section is selected again at its root.
+    private(set) var scrollToTopTicks: [AppSection: Int] = [:]
+    /// Minimum age of a feed before returning to the app refreshes it.
+    @ObservationIgnored var autoRefreshInterval: TimeInterval = 120
 
     @ObservationIgnored private var toastTask: Task<Void, Never>?
     @ObservationIgnored private let onSignOut: () -> Void
@@ -62,7 +66,11 @@ final class Session {
     /// Selecting the current section again pops it to its root, like UIKit tabs.
     func select(_ section: AppSection) {
         if section == self.section {
-            currentRouter.popToRoot()
+            if currentRouter.path.isEmpty {
+                scrollToTopTicks[section, default: 0] += 1
+            } else {
+                currentRouter.popToRoot()
+            }
         } else {
             self.section = section
         }

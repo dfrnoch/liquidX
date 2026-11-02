@@ -88,4 +88,33 @@ final class VisualTourUITests: XCTestCase {
         sleep(1)
         snapshot(app, "sign-in")
     }
+
+    @MainActor
+    func testDeepLinkedPost() {
+        let app = launch(["-LiquidXOpenPost", "2008"])
+        XCTAssertTrue(app.buttons["Post your reply"].waitForExistence(timeout: 10))
+        sleep(1)
+        snapshot(app, "deep-linked-post")
+    }
+
+    #if os(iOS)
+    /// Leaving and returning to the app refreshes the timeline; posts that
+    /// arrive while the reader is scrolled down are announced by a pill.
+    @MainActor
+    func testNewPostsPill() {
+        let app = launch()
+        XCTAssertTrue(app.staticTexts["Mira Okafor"].firstMatch.waitForExistence(timeout: 10))
+        app.swipeUp()
+        app.swipeUp()
+        XCUIDevice.shared.press(.home)
+        sleep(1)
+        app.activate()
+        let pill = app.buttons["Show 1 new post"].firstMatch
+        XCTAssertTrue(pill.waitForExistence(timeout: 5))
+        snapshot(app, "new-posts-pill")
+        pill.tap()
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Update: the aurora'")).firstMatch.waitForExistence(timeout: 5))
+        XCTAssertFalse(pill.exists)
+    }
+    #endif
 }

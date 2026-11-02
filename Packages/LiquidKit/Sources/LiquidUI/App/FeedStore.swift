@@ -20,6 +20,8 @@ final class FeedStore {
     private(set) var reachedEnd = false
     /// Non-fatal failure of a refresh or next page while content is shown.
     var transientError: String?
+    /// Posts added above the reader by a background refresh and not yet seen.
+    private(set) var unseenCount = 0
 
     @ObservationIgnored private var nextCursor: String?
     @ObservationIgnored private let fetch: Fetch
@@ -58,6 +60,7 @@ final class FeedStore {
             items = Self.deduplicated(page.items)
             nextCursor = page.nextCursor
             reachedEnd = page.nextCursor == nil
+            unseenCount = 0
             phase = .loaded
             lastRefresh = .now
             persist()
@@ -88,13 +91,36 @@ final class FeedStore {
                 nextCursor = page.nextCursor
                 reachedEnd = page.nextCursor == nil
             } else if !page.items.isEmpty {
+                let known = Set(items.map(\.id))
+                let fresh = page.items.filter { !known.contains($0.id) }
                 items = Self.deduplicated(page.items + items)
+                unseenCount += fresh.count
             }
             persist()
         } catch is CancellationError {
         } catch {
             transientError = error.localizedDescription
         }
+    }
+
+    /// Refreshes when the feed is older than `interval` (returning to the app).
+    func refreshIfStale(after interval: TimeInterval) async {
+        guard phase == .loaded, let lastRefresh, Date.now.timeIntervalSince(lastRefresh) >= interval else { return }
+        await refresh()
+    }
+
+    func markSeen() {
+        if unseenCount != 0 { unseenCount = 0 }
+    }
+
+    /// Authors of the unseen posts, for the "new posts" pill.
+    var unseenAuthors: [XUser] {
+        var seen = Set<String>()
+        return items.prefix(unseenCount)
+            .map { $0.repostedBy ?? $0.post.author }
+            .filter { seen.insert($0.id).inserted }
+            .prefix(3)
+            .map { $0 }
     }
 
     func loadMoreIfNeeded(after item: XTimelineItem) {

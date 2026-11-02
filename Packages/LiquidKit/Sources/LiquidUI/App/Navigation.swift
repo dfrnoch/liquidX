@@ -35,6 +35,7 @@ enum Route: Hashable {
     case profile(XUser)
     case user(String)
     case post(XPost)
+    case postID(String)
     case search(String)
 }
 
@@ -70,6 +71,7 @@ struct RoutedStack<Root: View>: View {
                 switch link {
                 case .user(let name): router.push(.user(name))
                 case .search(let query): router.push(.search(query))
+                case .post(let id): router.push(.postID(id))
                 }
                 return .handled
             }
@@ -86,7 +88,38 @@ private struct RouteDestination: View {
         case .profile(let user): ProfileView(user: user)
         case .user(let username): ProfileView(username: username)
         case .post(let post): PostDetailView(post: post)
+        case .postID(let id): PostLoader(id: id)
         case .search(let query): SearchResultsView(query: query)
+        }
+    }
+}
+
+/// Opens a post known only by ID (deep links, x.com status links).
+private struct PostLoader: View {
+    let id: String
+
+    @Environment(Session.self) private var session
+    @State private var post: XPost?
+    @State private var error: String?
+
+    var body: some View {
+        Group {
+            if let post {
+                PostDetailView(post: post)
+            } else if let error {
+                ContentUnavailableView("Post unavailable", systemImage: "text.bubble", description: Text(error))
+            } else {
+                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .background(Theme.canvas)
+        .task {
+            do {
+                post = try await session.service.post(id: id)
+            } catch is CancellationError {
+            } catch {
+                self.error = error.localizedDescription
+            }
         }
     }
 }

@@ -129,6 +129,12 @@ public final class AppModel {
         if let username = UserDefaults.standard.string(forKey: "LiquidXOpenProfile") {
             session.router(for: session.section).push(.user(username))
         }
+        if let id = UserDefaults.standard.string(forKey: "LiquidXOpenPost") {
+            session.router(for: session.section).push(.postID(id))
+        }
+        if UserDefaults.standard.bool(forKey: "LiquidXUITesting") {
+            session.autoRefreshInterval = 0
+        }
         withAnimation(.smooth) { phase = .signedIn(session) }
         Task { await session.start() }
     }

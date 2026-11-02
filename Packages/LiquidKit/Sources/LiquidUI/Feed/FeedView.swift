@@ -44,12 +44,21 @@ struct FeedRows: View {
 }
 
 /// A full-screen scrolling feed with pull to refresh.
+///
+/// The scroll position is anchored to the top visible post, so posts arriving
+/// from a background refresh appear *above* the reader instead of pushing the
+/// content down; a "new posts" pill then offers to jump up to them.
 struct FeedScreen<Header: View>: View {
     let store: FeedStore
     var emptyTitle: LocalizedStringKey = "Nothing to see here yet"
     var emptySymbol = "text.bubble"
     var emptyMessage: LocalizedStringKey = "Posts will show up here."
+    /// Changing this value scrolls to the top (re-selecting the current tab).
+    var scrollToTopTrigger = 0
     @ViewBuilder var header: Header
+
+    @State private var position = ScrollPosition(idType: String.self)
+    @State private var isNearTop = true
 
     var body: some View {
         ScrollView {
@@ -57,11 +66,40 @@ struct FeedScreen<Header: View>: View {
                 header
                 FeedRows(store: store, emptyTitle: emptyTitle, emptySymbol: emptySymbol, emptyMessage: emptyMessage)
             }
+            .scrollTargetLayout()
+        }
+        .scrollPosition($position, anchor: .top)
+        .onScrollGeometryChange(for: Bool.self) { geometry in
+            geometry.contentOffset.y + geometry.contentInsets.top < 40
+        } action: { _, nearTop in
+            isNearTop = nearTop
+            if nearTop { store.markSeen() }
         }
         .scrollContentBackground(.hidden)
         .background(Theme.canvas)
-        .refreshable { await store.refresh() }
+        .overlay(alignment: .top) {
+            if store.unseenCount > 0, !isNearTop {
+                NewPostsPill(count: store.unseenCount, authors: store.unseenAuthors) {
+                    scrollToTop()
+                }
+                .padding(.top, 8)
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(.snappy, value: store.unseenCount > 0 && !isNearTop)
+        .refreshable {
+            await store.refresh()
+            // A pull is an explicit request to see what's new.
+            store.markSeen()
+            position.scrollTo(edge: .top)
+        }
+        .onChange(of: scrollToTopTrigger) { scrollToTop() }
         .task { await store.loadIfNeeded() }
+    }
+
+    private func scrollToTop() {
+        withAnimation(.smooth) { position.scrollTo(edge: .top) }
+        store.markSeen()
     }
 }
 
@@ -70,9 +108,48 @@ extension FeedScreen where Header == EmptyView {
         store: FeedStore,
         emptyTitle: LocalizedStringKey = "Nothing to see here yet",
         emptySymbol: String = "text.bubble",
-        emptyMessage: LocalizedStringKey = "Posts will show up here."
+        emptyMessage: LocalizedStringKey = "Posts will show up here.",
+        scrollToTopTrigger: Int = 0
     ) {
-        self.init(store: store, emptyTitle: emptyTitle, emptySymbol: emptySymbol, emptyMessage: emptyMessage) { EmptyView() }
+        self.init(
+            store: store,
+            emptyTitle: emptyTitle,
+            emptySymbol: emptySymbol,
+            emptyMessage: emptyMessage,
+            scrollToTopTrigger: scrollToTopTrigger
+        ) { EmptyView() }
+    }
+}
+
+/// "↑ (avatars) 5 new posts", as on X: a tinted glass capsule.
+private struct NewPostsPill: View {
+    let count: Int
+    let authors: [XUser]
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: "arrow.up")
+                    .font(.subheadline.weight(.bold))
+                HStack(spacing: -8) {
+                    ForEach(authors) { author in
+                        Avatar(user: author, size: 24)
+                            .overlay(Circle().stroke(Theme.accent, lineWidth: 2))
+                    }
+                }
+                Text(count == 1 ? "1 new post" : "\(count) new posts")
+                    .font(.subheadline.weight(.semibold))
+            }
+            .foregroundStyle(.white)
+            .padding(.leading, 12)
+            .padding(.trailing, 16)
+            .padding(.vertical, 8)
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .glassEffect(.regular.tint(Theme.accent).interactive(), in: .capsule)
+        .accessibilityLabel(count == 1 ? Text("Show 1 new post") : Text("Show \(count) new posts"))
     }
 }
 

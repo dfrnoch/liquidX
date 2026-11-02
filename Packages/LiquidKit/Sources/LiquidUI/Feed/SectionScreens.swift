@@ -3,11 +3,22 @@ import XKit
 
 struct HomeScreen: View {
     @Environment(Session.self) private var session
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         @Bindable var session = session
-        FeedScreen(store: session.home, emptyTitle: "Welcome to your timeline", emptySymbol: "house", emptyMessage: "Posts from accounts you follow appear here.")
+        FeedScreen(
+            store: session.home,
+            emptyTitle: "Welcome to your timeline",
+            emptySymbol: "house",
+            emptyMessage: "Posts from accounts you follow appear here.",
+            scrollToTopTrigger: session.scrollToTopTicks[.home, default: 0]
+        )
             .id(session.homeFilter)
+            .onChange(of: scenePhase) { _, phase in
+                guard phase == .active else { return }
+                Task { await session.home.refreshIfStale(after: session.autoRefreshInterval) }
+            }
             .navigationTitle("Home")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
@@ -67,7 +78,13 @@ struct NotificationsScreen: View {
     @Environment(Session.self) private var session
 
     var body: some View {
-        FeedScreen(store: session.mentions, emptyTitle: "No mentions yet", emptySymbol: "bell", emptyMessage: "When someone mentions you, you'll find it here.")
+        FeedScreen(
+            store: session.mentions,
+            emptyTitle: "No mentions yet",
+            emptySymbol: "bell",
+            emptyMessage: "When someone mentions you, you'll find it here.",
+            scrollToTopTrigger: session.scrollToTopTicks[.notifications, default: 0]
+        )
             .navigationTitle("Notifications")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
@@ -80,7 +97,13 @@ struct BookmarksScreen: View {
     @Environment(Session.self) private var session
 
     var body: some View {
-        FeedScreen(store: session.bookmarks, emptyTitle: "Save posts for later", emptySymbol: "bookmark", emptyMessage: "Bookmark posts to easily find them again in the future.")
+        FeedScreen(
+            store: session.bookmarks,
+            emptyTitle: "Save posts for later",
+            emptySymbol: "bookmark",
+            emptyMessage: "Bookmark posts to easily find them again in the future.",
+            scrollToTopTrigger: session.scrollToTopTicks[.bookmarks, default: 0]
+        )
             .navigationTitle("Bookmarks")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
