@@ -194,7 +194,7 @@ enum DemoData {
             ("noorhaddad", "Love this, thanks for sharing."),
             ("theom", "Okay, now I want to try this in Lanternfall too."),
         ]
-        return lines.enumerated().map { index, line in
+        return lines.filter { $0.0 != post.author.username }.enumerated().map { index, line in
             XTimelineItem(XPost(
                 id: "\(post.id)-r\(index)",
                 author: user(line.0),

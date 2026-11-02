@@ -25,7 +25,7 @@ struct PostDetailView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        .safeAreaInset(edge: .bottom) { replyBar }
+        .safeAreaBar(edge: .bottom) { replyBar }
         .task { await loadReplies() }
         .refreshable { await loadReplies() }
     }
@@ -61,13 +61,16 @@ struct PostDetailView: View {
             Text(post.createdAt.formatted(date: .abbreviated, time: .shortened))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            HStack(spacing: 16) {
-                stat(state.reposts, "Reposts")
-                stat(post.metrics.quotes, "Quotes")
-                stat(state.likes, "Likes")
-                stat(state.bookmarks, "Bookmarks")
-                if let views = post.metrics.views { stat(views, "Views") }
+            ScrollView(.horizontal) {
+                HStack(spacing: 16) {
+                    stat(state.reposts, "Reposts")
+                    stat(post.metrics.quotes, "Quotes")
+                    stat(state.likes, "Likes")
+                    stat(state.bookmarks, "Bookmarks")
+                    if let views = post.metrics.views { stat(views, "Views") }
+                }
             }
+            .scrollIndicators(.never)
             .font(.subheadline)
             .padding(.vertical, 10)
             .overlay(alignment: .top) { Rectangle().fill(Theme.hairline).frame(height: 0.5) }
@@ -79,13 +82,17 @@ struct PostDetailView: View {
         .rowSeparator()
     }
 
+    @ViewBuilder
     private func stat(_ value: Int, _ label: LocalizedStringKey) -> some View {
-        HStack(spacing: 4) {
-            Text(Formatting.compact(value)).bold().monospacedDigit()
-            Text(label).foregroundStyle(.secondary)
+        if value > 0 {
+            HStack(spacing: 4) {
+                Text(Formatting.compact(value)).bold().monospacedDigit()
+                    .contentTransition(.numericText(value: Double(value)))
+                Text(label).foregroundStyle(.secondary)
+            }
+            .lineLimit(1)
+            .fixedSize()
         }
-        .lineLimit(1)
-        .fixedSize()
     }
 
     @ViewBuilder
