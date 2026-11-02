@@ -1,0 +1,9 @@
+// UITests.xcconfig: the XCUITest bundle that drives the app in demo mode.
+
+PRODUCT_NAME = LiquidXUITests
+PRODUCT_BUNDLE_IDENTIFIER = dev.frnoch.liquidx.uitests
+GENERATE_INFOPLIST_FILE = YES
+TEST_TARGET_NAME = LiquidX
+SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated
+LD_RUNPATH_SEARCH_PATHS[sdk=iphone*] = $(inherited) @executable_path/Frameworks @loader_path/Frameworks
+LD_RUNPATH_SEARCH_PATHS[sdk=macosx*] = $(inherited) @executable_path/../Frameworks @loader_path/../Frameworks

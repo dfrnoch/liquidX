@@ -21,6 +21,7 @@ public struct RootView: View {
             }
         }
         .tint(Theme.accent)
+        .preferredColorScheme(model.appearance.colorScheme)
         .task { await model.start() }
     }
 }

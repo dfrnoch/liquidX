@@ -88,6 +88,7 @@ struct SignInView: View {
                     .multilineTextAlignment(.center)
             }
             .padding(24)
+            .environment(\.colorScheme, .dark)
         }
         .sheet(isPresented: $isShowingClientID) {
             ClientIDSheet(model: model)

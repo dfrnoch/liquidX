@@ -10,7 +10,19 @@
 		A10000000000000000000001 /* LiquidUI in Frameworks */ = {isa = PBXBuildFile; productRef = A20000000000000000000001 /* LiquidUI */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		AD0000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A70000000000000000000001;
+			remoteInfo = LiquidX;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		A30000000000000000000009 /* LiquidXUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LiquidXUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A3000000000000000000000A /* UITests.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = UITests.xcconfig; sourceTree = "<group>"; };
 		A30000000000000000000001 /* LiquidX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LiquidX.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A30000000000000000000002 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
 		A30000000000000000000003 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
@@ -22,10 +34,18 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		A40000000000000000000002 /* UITests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = UITests; sourceTree = "<group>"; };
 		A40000000000000000000001 /* App */ = {isa = PBXFileSystemSynchronizedRootGroup; path = App; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		A50000000000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A50000000000000000000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -41,6 +61,7 @@
 			isa = PBXGroup;
 			children = (
 				A40000000000000000000001 /* App */,
+				A40000000000000000000002 /* UITests */,
 				A30000000000000000000008 /* LiquidKit */,
 				A60000000000000000000003 /* Config */,
 				A60000000000000000000002 /* Products */,
@@ -51,6 +72,7 @@
 			isa = PBXGroup;
 			children = (
 				A30000000000000000000001 /* LiquidX.app */,
+				A30000000000000000000009 /* LiquidXUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -62,6 +84,7 @@
 				A30000000000000000000003 /* Debug.xcconfig */,
 				A30000000000000000000004 /* Release.xcconfig */,
 				A30000000000000000000005 /* App.xcconfig */,
+				A3000000000000000000000A /* UITests.xcconfig */,
 				A30000000000000000000006 /* Info.plist */,
 				A30000000000000000000007 /* LiquidX.entitlements */,
 			);
@@ -71,6 +94,27 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		A70000000000000000000002 /* LiquidXUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A90000000000000000000003 /* Build configuration list for PBXNativeTarget "LiquidXUITests" */;
+			buildPhases = (
+				A80000000000000000000003 /* Sources */,
+				A50000000000000000000002 /* Frameworks */,
+				A80000000000000000000004 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AE0000000000000000000001 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A40000000000000000000002 /* UITests */,
+			);
+			name = LiquidXUITests;
+			productName = LiquidXUITests;
+			productReference = A30000000000000000000009 /* LiquidXUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		A70000000000000000000001 /* LiquidX */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A90000000000000000000002 /* Build configuration list for PBXNativeTarget "LiquidX" */;
@@ -107,6 +151,10 @@
 					A70000000000000000000001 = {
 						CreatedOnToolsVersion = 27.2;
 					};
+					A70000000000000000000002 = {
+						CreatedOnToolsVersion = 27.2;
+						TestTargetID = A70000000000000000000001;
+					};
 				};
 			};
 			buildConfigurationList = A90000000000000000000001 /* Build configuration list for PBXProject "LiquidX" */;
@@ -127,11 +175,19 @@
 			projectRoot = "";
 			targets = (
 				A70000000000000000000001 /* LiquidX */,
+				A70000000000000000000002 /* LiquidXUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		A80000000000000000000004 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A80000000000000000000002 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -142,6 +198,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		A80000000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A80000000000000000000001 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -151,7 +214,29 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		AE0000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A70000000000000000000001 /* LiquidX */;
+			targetProxy = AD0000000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		AC0000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A3000000000000000000000A /* UITests.xcconfig */;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		AC0000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A3000000000000000000000A /* UITests.xcconfig */;
+			buildSettings = {
+			};
+			name = Release;
+		};
 		AC0000000000000000000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = A30000000000000000000003 /* Debug.xcconfig */;
@@ -183,6 +268,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		A90000000000000000000003 /* Build configuration list for PBXNativeTarget "LiquidXUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC0000000000000000000005 /* Debug */,
+				AC0000000000000000000006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		A90000000000000000000001 /* Build configuration list for PBXProject "LiquidX" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

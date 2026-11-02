@@ -34,6 +34,13 @@ public struct SettingsView: View {
                 }
             }
 
+            Section("Appearance") {
+                Picker("Theme", selection: $model.appearance) {
+                    ForEach(Appearance.allCases) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
+            }
+
             Section {
                 LabeledContent("Client ID") {
                     Text(model.effectiveClientID.isEmpty ? "Not set" : masked(model.effectiveClientID))

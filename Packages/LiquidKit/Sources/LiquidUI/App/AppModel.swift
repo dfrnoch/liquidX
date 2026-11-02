@@ -23,10 +23,15 @@ public final class AppModel {
         didSet { UserDefaults.standard.set(clientID, forKey: Self.clientIDKey) }
     }
 
+    var appearance: Appearance {
+        didSet { UserDefaults.standard.set(appearance.rawValue, forKey: Self.appearanceKey) }
+    }
+
     let bundledClientID: String
     private let credentials: any CredentialStore
     private let launchDemo: Bool
     private static let clientIDKey = "LiquidX.clientID"
+    private static let appearanceKey = "LiquidXAppearance"
     private static let meCacheKey = "LiquidX.me"
 
     public convenience init() {
@@ -37,6 +42,7 @@ public final class AppModel {
         bundledClientID = (bundle.object(forInfoDictionaryKey: "LXClientID") as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         clientID = defaults.string(forKey: Self.clientIDKey) ?? ""
+        appearance = defaults.string(forKey: Self.appearanceKey).flatMap(Appearance.init(rawValue:)) ?? .system
         launchDemo = defaults.bool(forKey: "LiquidXDemo")
         credentials = defaults.bool(forKey: "LiquidXUITesting") ? EphemeralCredentialStore() : KeychainCredentialStore()
     }
@@ -136,5 +142,27 @@ public final class AppModel {
             UserDefaults.standard.removeObject(forKey: Self.meCacheKey)
         }
         withAnimation(.smooth) { phase = .signedOut }
+    }
+}
+
+enum Appearance: String, CaseIterable, Identifiable {
+    case system, light, dark
+
+    var id: Self { self }
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .system: "System"
+        case .light: "Light"
+        case .dark: "Dark"
+        }
+    }
+
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .system: nil
+        case .light: .light
+        case .dark: .dark
+        }
     }
 }

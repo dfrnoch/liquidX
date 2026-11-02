@@ -349,6 +349,7 @@ private struct ProfileHeader: View {
         .controlSize(.large)
         .menuIndicator(.hidden)
         .fixedSize()
+        .tint(.primary)
         .accessibilityLabel("More")
     }
 
@@ -367,6 +368,7 @@ private struct ProfileHeader: View {
             .buttonStyle(.glass)
             .buttonBorderShape(.circle)
             .controlSize(.large)
+            .tint(.primary)
             .accessibilityLabel("Message")
         }
     }
@@ -377,18 +379,20 @@ private struct ProfileHeader: View {
             Button {
                 openURL(URL(string: "https://x.com/settings/profile")!)
             } label: {
-                Text("Edit profile").font(.headline).frame(maxWidth: .infinity)
+                Text("Edit profile").font(.headline).foregroundStyle(.primary).frame(maxWidth: .infinity)
             }
             .buttonStyle(.glass)
             .controlSize(.large)
+            .tint(.primary)
         } else if user.isFollowedByMe == true {
             Button {
                 Task { await model.toggleFollow(using: session) }
             } label: {
-                Text("Following").font(.headline).frame(maxWidth: .infinity)
+                Text("Following").font(.headline).foregroundStyle(.primary).frame(maxWidth: .infinity)
             }
             .buttonStyle(.glass)
             .controlSize(.large)
+            .tint(.primary)
             .disabled(model.isUpdatingFollow)
         } else {
             Button {
@@ -427,6 +431,7 @@ struct SettingsLinkButton: View {
         .buttonStyle(.glass)
         .buttonBorderShape(.circle)
         .controlSize(.large)
+        .tint(.primary)
         .accessibilityLabel("Settings")
         #else
         Button {
@@ -439,6 +444,7 @@ struct SettingsLinkButton: View {
         .buttonStyle(.glass)
         .buttonBorderShape(.circle)
         .controlSize(.large)
+        .tint(.primary)
         .accessibilityLabel("Settings")
         #endif
     }
