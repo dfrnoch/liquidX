@@ -349,7 +349,7 @@ private struct ProfileHeader: View {
         .controlSize(.large)
         .menuIndicator(.hidden)
         .fixedSize()
-        .tint(.primary)
+        .neutralGlassTint()
         .accessibilityLabel("More")
     }
 
@@ -365,10 +365,7 @@ private struct ProfileHeader: View {
                     .font(.body.weight(.semibold))
                     .frame(width: 24, height: 24)
             }
-            .buttonStyle(.glass)
-            .buttonBorderShape(.circle)
-            .controlSize(.large)
-            .tint(.primary)
+            .neutralGlassButton(circle: true)
             .accessibilityLabel("Message")
         }
     }
@@ -381,18 +378,14 @@ private struct ProfileHeader: View {
             } label: {
                 Text("Edit profile").font(.headline).foregroundStyle(.primary).frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glass)
-            .controlSize(.large)
-            .tint(.primary)
+            .neutralGlassButton(circle: false)
         } else if user.isFollowedByMe == true {
             Button {
                 Task { await model.toggleFollow(using: session) }
             } label: {
                 Text("Following").font(.headline).foregroundStyle(.primary).frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glass)
-            .controlSize(.large)
-            .tint(.primary)
+            .neutralGlassButton(circle: false)
             .disabled(model.isUpdatingFollow)
         } else {
             Button {
@@ -428,10 +421,7 @@ struct SettingsLinkButton: View {
                 .font(.body.weight(.semibold))
                 .frame(width: 24, height: 24)
         }
-        .buttonStyle(.glass)
-        .buttonBorderShape(.circle)
-        .controlSize(.large)
-        .tint(.primary)
+        .neutralGlassButton(circle: true)
         .accessibilityLabel("Settings")
         #else
         Button {
@@ -441,10 +431,7 @@ struct SettingsLinkButton: View {
                 .font(.body.weight(.semibold))
                 .frame(width: 24, height: 24)
         }
-        .buttonStyle(.glass)
-        .buttonBorderShape(.circle)
-        .controlSize(.large)
-        .tint(.primary)
+        .neutralGlassButton(circle: true)
         .accessibilityLabel("Settings")
         #endif
     }

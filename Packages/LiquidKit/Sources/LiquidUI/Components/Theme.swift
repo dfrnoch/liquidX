@@ -44,8 +44,52 @@ extension View {
         }
     }
 
+    /// Label-coloured (white/black) foreground for glass *menus*. iOS uses the
+    /// tint for the label only; macOS menus already render neutral.
+    func neutralGlassTint() -> some View {
+        #if os(iOS)
+        tint(.primary)
+        #else
+        self
+        #endif
+    }
+
+    /// A neutral (untinted) glass button. iOS: the system glass style with a
+    /// label-coloured foreground. macOS fills tinted glass buttons with the tint
+    /// and forces white labels, so it uses plain glass via `NeutralGlassButtonStyle`.
+    @ViewBuilder
+    func neutralGlassButton(circle: Bool) -> some View {
+        #if os(iOS)
+        if circle {
+            buttonStyle(.glass).buttonBorderShape(.circle).controlSize(.large).tint(.primary)
+        } else {
+            buttonStyle(.glass).controlSize(.large).tint(.primary)
+        }
+        #else
+        buttonStyle(NeutralGlassButtonStyle(isCircle: circle))
+        #endif
+    }
+
     @ViewBuilder
     func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
         if condition { transform(self) } else { self }
     }
 }
+
+#if os(macOS)
+struct NeutralGlassButtonStyle: ButtonStyle {
+    var isCircle: Bool
+
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(.primary)
+            .padding(.horizontal, isCircle ? 6 : 18)
+            .padding(.vertical, isCircle ? 6 : 8)
+            .contentShape(isCircle ? AnyShape(Circle()) : AnyShape(Capsule()))
+            .glassEffect(.regular.interactive(), in: isCircle ? AnyShape(Circle()) : AnyShape(Capsule()))
+            .opacity(isEnabled ? (configuration.isPressed ? 0.75 : 1) : 0.5)
+    }
+}
+#endif
