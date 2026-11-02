@@ -42,10 +42,14 @@
   roll back if X refuses the change.
 - **Notifications** (your mentions), **Bookmarks**, **Search** (recent posts,
   hashtags, `from:` queries) and personalized **trends** when your app has access.
+- **Keeps your place:** posts that arrive while you read appear above you,
+  announced by a glass "new posts" pill. Re-tap a tab to jump to the top. Links to
+  x.com profiles and posts open inside the app.
 - **Fast:** cached timeline on launch, downsampled image decoding off the main
   thread, a bounded memory cache, and refreshes that ask only for posts newer than
   the ones you already have. This also keeps API usage, and cost, low.
-- **Native on each platform:** iPhone tabs, an iPad sidebar, and a Mac window
+- **Native on each platform:** iPhone tabs, an iPad tab bar that becomes a
+  sidebar, a readable centred column on wide screens, and a Mac window
   with menu commands (⌘N new post, ⌘1–5 sections, ⌘R refresh) and a Settings
   window.
 - **Demo mode:** explore the whole app offline with fictional accounts. No X

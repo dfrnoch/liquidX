@@ -44,6 +44,12 @@ extension View {
         }
     }
 
+    /// Caps content at a comfortable reading width and centres it, so feeds
+    /// don't stretch edge to edge on iPad and wide windows.
+    func readableWidth() -> some View {
+        frame(maxWidth: 680).frame(maxWidth: .infinity)
+    }
+
     /// Label-coloured (white/black) foreground for glass *menus*. iOS uses the
     /// tint for the label only; macOS menus already render neutral.
     func neutralGlassTint() -> some View {

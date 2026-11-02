@@ -122,6 +122,7 @@ struct ProfileView: View {
                     }
                 }
             }
+            .readableWidth()
         }
         .ignoresSafeArea(edges: .top)
         .scrollEdgeEffectHidden(true, for: .top)

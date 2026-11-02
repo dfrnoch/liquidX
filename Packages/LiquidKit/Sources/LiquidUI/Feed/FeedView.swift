@@ -67,6 +67,7 @@ struct FeedScreen<Header: View>: View {
                 FeedRows(store: store, emptyTitle: emptyTitle, emptySymbol: emptySymbol, emptyMessage: emptyMessage)
             }
             .scrollTargetLayout()
+            .readableWidth()
         }
         .scrollPosition($position, anchor: .top)
         .onScrollGeometryChange(for: Bool.self) { geometry in

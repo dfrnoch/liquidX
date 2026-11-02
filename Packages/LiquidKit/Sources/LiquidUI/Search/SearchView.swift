@@ -112,6 +112,7 @@ struct TrendsList: View {
                     }
                 }
             }
+            .readableWidth()
         }
     }
 }

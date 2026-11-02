@@ -109,12 +109,15 @@ final class VisualTourUITests: XCTestCase {
         XCUIDevice.shared.press(.home)
         sleep(1)
         app.activate()
-        let pill = app.buttons["Show 1 new post"].firstMatch
+        // iPad may activate the scene once more at launch, so more than one
+        // demo post can have arrived; the label carries the exact count.
+        let pill = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Show ' AND label CONTAINS 'new post'")).firstMatch
         XCTAssertTrue(pill.waitForExistence(timeout: 5))
         snapshot(app, "new-posts-pill")
         pill.tap()
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Update: the aurora'")).firstMatch.waitForExistence(timeout: 5))
-        XCTAssertFalse(pill.exists)
+        // Jumped to the top, where the newest arrival was posted "now".
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label ENDSWITH ' · now'")).firstMatch.waitForExistence(timeout: 5))
+        XCTAssertFalse(pill.waitForExistence(timeout: 1))
     }
     #endif
 }

@@ -19,6 +19,7 @@ struct PostDetailView: View {
                 focused
                 repliesSection
             }
+            .readableWidth()
         }
         .background(Theme.canvas)
         .navigationTitle("Post")
@@ -133,6 +134,7 @@ struct PostDetailView: View {
         .glassEffect(.regular.interactive(), in: .capsule)
         .padding(.horizontal, 16)
         .padding(.bottom, 8)
+        .readableWidth()
     }
 
     private func loadReplies() async {
