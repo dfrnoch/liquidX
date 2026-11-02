@@ -1,0 +1,45 @@
+{
+  "fill" : {
+    "linear-gradient" : [
+      "display-p3:0.07000,0.16000,0.36000,1.00000",
+      "display-p3:0.01000,0.02000,0.06000,1.00000"
+    ],
+    "orientation" : { "start" : { "x" : 0.5, "y" : 0 }, "stop" : { "x" : 0.5, "y" : 1 } }
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "image-name" : "stroke-b.svg",
+          "name" : "stroke-b",
+          "fill" : {
+            "linear-gradient" : [
+              "display-p3:0.45000,0.78000,1.00000,1.00000",
+              "display-p3:0.11000,0.50000,0.94000,1.00000"
+            ]
+          }
+        }
+      ],
+      "shadow" : { "kind" : "neutral", "opacity" : 0.5 },
+      "translucency" : { "enabled" : true, "value" : 0.35 }
+    },
+    {
+      "layers" : [
+        {
+          "image-name" : "stroke-a.svg",
+          "name" : "stroke-a",
+          "fill" : {
+            "linear-gradient" : [
+              "display-p3:1.00000,1.00000,1.00000,1.00000",
+              "display-p3:0.80000,0.90000,1.00000,1.00000"
+            ]
+          }
+        }
+      ],
+      "shadow" : { "kind" : "neutral", "opacity" : 0.5 },
+      "translucency" : { "enabled" : true, "value" : 0.2 },
+      "specular" : true
+    }
+  ],
+  "supported-platforms" : { "squares" : "shared" }
+}

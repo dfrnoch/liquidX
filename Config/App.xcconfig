@@ -1,0 +1,27 @@
+// App.xcconfig: settings for the LiquidX application target only.
+
+PRODUCT_NAME = LiquidX
+PRODUCT_BUNDLE_IDENTIFIER = dev.frnoch.liquidx
+GENERATE_INFOPLIST_FILE = YES
+INFOPLIST_FILE = Config/Info.plist
+INFOPLIST_KEY_CFBundleDisplayName = LiquidX
+INFOPLIST_KEY_LSApplicationCategoryType = public.app-category.social-networking
+INFOPLIST_KEY_NSHumanReadableCopyright = MIT License. Not affiliated with X Corp.
+INFOPLIST_KEY_UILaunchScreen_Generation = YES
+INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES
+INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES
+INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor
+LD_RUNPATH_SEARCH_PATHS[sdk=iphone*] = $(inherited) @executable_path/Frameworks
+LD_RUNPATH_SEARCH_PATHS[sdk=macosx*] = $(inherited) @executable_path/../Frameworks
+COMBINE_HIDPI_IMAGES = YES
+SWIFT_EMIT_LOC_STRINGS = YES
+
+// macOS: hardened runtime, App Sandbox, outgoing network only.
+CODE_SIGN_ENTITLEMENTS[sdk=macosx*] = Config/LiquidX.entitlements
+ENABLE_HARDENED_RUNTIME[sdk=macosx*] = YES
+ENABLE_APP_SANDBOX[sdk=macosx*] = YES
+ENABLE_OUTGOING_NETWORK_CONNECTIONS[sdk=macosx*] = YES

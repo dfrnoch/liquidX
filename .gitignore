@@ -1,0 +1,27 @@
+.DS_Store
+/build/
+DerivedData/
+.build/
+.swiftpm/
+xcuserdata/
+*.xcresult
+*.xcuserstate
+
+# Personal configuration (signing team, X Client ID)
+Config/Local.xcconfig
+
+# Credentials, signing material and artifacts
+.env
+.env.*
+*.p12
+*.pfx
+*.mobileprovision
+*.provisionprofile
+*.dSYM/
+*.ipa
+*.app/
+*.xcarchive/
+*.dmg
+*.log
+
+.claude/worktrees/

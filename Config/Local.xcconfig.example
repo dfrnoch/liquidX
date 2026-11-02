@@ -1,0 +1,9 @@
+// Copy to Config/Local.xcconfig (git-ignored) and fill in what you need.
+
+// Your Apple Developer team, required to run on a physical iPhone or iPad.
+// DEVELOPMENT_TEAM = ABCDE12345
+// PRODUCT_BUNDLE_IDENTIFIER = com.example.liquidx
+
+// OAuth 2.0 Client ID of your X developer app (type: Native App, callback
+// URI: liquidx://oauth-callback). Optional: you can also paste it in the app.
+// LIQUIDX_X_CLIENT_ID = your-client-id
