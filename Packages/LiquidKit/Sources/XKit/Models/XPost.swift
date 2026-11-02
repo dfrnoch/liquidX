@@ -32,6 +32,9 @@ public struct XPost: Identifiable, Hashable, Sendable, Codable {
     public var replyingTo: [String]
     public var quoted: XQuotedPost?
     public var card: XLinkCard?
+    /// The signed-in account's own engagement, when the source reports it
+    /// (the x.com web API does; the official v2 timeline does not).
+    public var viewer: ViewerState?
 
     public init(
         id: String,
@@ -43,7 +46,8 @@ public struct XPost: Identifiable, Hashable, Sendable, Codable {
         conversationID: String? = nil,
         replyingTo: [String] = [],
         quoted: XQuotedPost? = nil,
-        card: XLinkCard? = nil
+        card: XLinkCard? = nil,
+        viewer: ViewerState? = nil
     ) {
         self.id = id
         self.author = author
@@ -55,6 +59,7 @@ public struct XPost: Identifiable, Hashable, Sendable, Codable {
         self.replyingTo = replyingTo
         self.quoted = quoted
         self.card = card
+        self.viewer = viewer
     }
 
     public var url: URL {
@@ -62,6 +67,18 @@ public struct XPost: Identifiable, Hashable, Sendable, Codable {
     }
 
     public var plainText: String { String(text.characters) }
+}
+
+public struct ViewerState: Hashable, Sendable, Codable {
+    public var liked: Bool
+    public var reposted: Bool
+    public var bookmarked: Bool
+
+    public init(liked: Bool = false, reposted: Bool = false, bookmarked: Bool = false) {
+        self.liked = liked
+        self.reposted = reposted
+        self.bookmarked = bookmarked
+    }
 }
 
 /// A quoted post, one level deep (X does not render quotes of quotes inline).

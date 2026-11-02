@@ -25,6 +25,11 @@ struct HomeScreen: View {
             .overlay(alignment: .bottomTrailing) { ComposeButton() }
             #endif
             .toolbar {
+                if session.service.homeFeeds.count > 1 {
+                    ToolbarItem(placement: .principal) {
+                        HomeFeedPicker(selection: $session.homeFilter.feed, feeds: session.service.homeFeeds)
+                    }
+                }
                 #if os(iOS)
                 ToolbarItem(placement: .topBarLeading) {
                     Button { session.section = .profile } label: {
@@ -45,12 +50,29 @@ struct HomeScreen: View {
                             set: { session.homeFilter.hideReposts = !$0 }
                         ))
                     } label: {
-                        Label("Filter", systemImage: session.homeFilter == HomeFilter()
+                        Label("Filter", systemImage: !session.homeFilter.hideReplies && !session.homeFilter.hideReposts
                               ? "line.3.horizontal.decrease"
                               : "line.3.horizontal.decrease.circle.fill")
                     }
                 }
             }
+    }
+}
+
+/// "For you | Following", as on X; only offered when the connection has both.
+private struct HomeFeedPicker: View {
+    @Binding var selection: HomeFeed
+    let feeds: [HomeFeed]
+
+    var body: some View {
+        Picker("Feed", selection: $selection) {
+            ForEach(feeds, id: \.self) { feed in
+                Text(feed == .forYou ? "For you" : "Following").tag(feed)
+            }
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .fixedSize()
     }
 }
 

@@ -39,8 +39,9 @@ final class Session {
         self.service = service
         self.me = me
         self.onSignOut = onSignOut
-        homeFilter = HomeFilter()
-        home = Self.makeHome(service: service, me: me, filter: HomeFilter())
+        let filter = HomeFilter(feed: service.homeFeeds.first ?? .following)
+        homeFilter = filter
+        home = Self.makeHome(service: service, me: me, filter: filter)
         mentions = FeedStore { page in try await service.mentions(page) }
         bookmarks = FeedStore { page in try await service.bookmarks(page) }
         engagement = EngagementStore(service: service)
@@ -49,7 +50,8 @@ final class Session {
     }
 
     private static func makeHome(service: any XService, me: XUser, filter: HomeFilter) -> FeedStore {
-        let cache = service.isDemo || filter != HomeFilter() ? nil : FeedCache(name: "home-\(me.id)")
+        let unfiltered = !filter.hideReplies && !filter.hideReposts
+        let cache = service.isDemo || !unfiltered ? nil : FeedCache(name: "home-\(me.id)-\(filter.feed.rawValue)")
         return FeedStore(cache: cache) { page in try await service.homeTimeline(page, filter: filter) }
     }
 
@@ -183,7 +185,10 @@ final class PostEngagement {
     var replies: Int
     var bookmarks: Int
 
-    init(_ metrics: XPost.Metrics) {
+    init(_ metrics: XPost.Metrics, viewer: ViewerState?) {
+        liked = viewer?.liked ?? false
+        reposted = viewer?.reposted ?? false
+        bookmarked = viewer?.bookmarked ?? false
         likes = metrics.likes
         reposts = metrics.reposts
         replies = metrics.replies
@@ -202,7 +207,7 @@ final class EngagementStore {
 
     func state(for post: XPost) -> PostEngagement {
         if let state = states[post.id] { return state }
-        let state = PostEngagement(post.metrics)
+        let state = PostEngagement(post.metrics, viewer: post.viewer)
         states[post.id] = state
         return state
     }

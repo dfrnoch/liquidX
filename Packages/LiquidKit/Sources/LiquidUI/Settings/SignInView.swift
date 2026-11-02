@@ -6,6 +6,8 @@ struct SignInView: View {
     @Bindable var model: AppModel
     @Environment(\.webAuthenticationSession) private var webAuthenticationSession
     @State private var isShowingClientID = false
+    @State private var isShowingWebNotice = false
+    @State private var isShowingWebLogin = false
 
     var body: some View {
         ZStack {
@@ -72,6 +74,23 @@ struct SignInView: View {
                     }
 
                     Button {
+                        isShowingWebNotice = true
+                    } label: {
+                        HStack(spacing: 8) {
+                            Text("Use your x.com login instead")
+                            Text("Unofficial")
+                                .font(.caption2.weight(.bold))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(.orange.opacity(0.25), in: Capsule())
+                                .foregroundStyle(.orange)
+                        }
+                        .font(.subheadline.weight(.semibold))
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 6)
+
+                    Button {
                         isShowingClientID = true
                     } label: {
                         Text(model.effectiveClientID.isEmpty ? "Set up your X developer app" : "Using your X developer app · Change")
@@ -79,7 +98,7 @@ struct SignInView: View {
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
-                    .padding(.top, 4)
+                    .padding(.top, 2)
                 }
                 .frame(maxWidth: 420)
 
@@ -94,12 +113,29 @@ struct SignInView: View {
         .sheet(isPresented: $isShowingClientID) {
             ClientIDSheet(model: model)
         }
+        .sheet(isPresented: $isShowingWebNotice) {
+            WebSessionNotice {
+                // Present the login once the notice sheet has gone away.
+                Task {
+                    try? await Task.sleep(for: .milliseconds(400))
+                    isShowingWebLogin = true
+                }
+            }
+        }
+        .sheet(isPresented: $isShowingWebLogin) {
+            WebLoginView { credentials in
+                Task { await model.signIn(with: credentials) }
+            }
+        }
         #if DEBUG
         .task {
             // Debug-only: start the real OAuth flow on launch, for testing the
             // sign-in sheet without UI automation.
             if UserDefaults.standard.bool(forKey: "LiquidXAutoSignIn"), !model.effectiveClientID.isEmpty {
                 await model.signIn(using: webAuthenticationSession)
+            }
+            if UserDefaults.standard.bool(forKey: "LiquidXWebLogin") {
+                isShowingWebLogin = true
             }
         }
         #endif

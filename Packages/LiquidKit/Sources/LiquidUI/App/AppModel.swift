@@ -29,10 +29,12 @@ public final class AppModel {
 
     let bundledClientID: String
     private let credentials: any CredentialStore
+    private let webCredentials: any WebCredentialStore
     private let launchDemo: Bool
     private static let clientIDKey = "LiquidX.clientID"
     private static let appearanceKey = "LiquidXAppearance"
     private static let meCacheKey = "LiquidX.me"
+    private static let connectionKey = "LiquidX.connection"
 
     public convenience init() {
         self.init(bundle: .main, defaults: .standard)
@@ -44,7 +46,9 @@ public final class AppModel {
         clientID = defaults.string(forKey: Self.clientIDKey) ?? ""
         appearance = defaults.string(forKey: Self.appearanceKey).flatMap(Appearance.init(rawValue:)) ?? .system
         launchDemo = defaults.bool(forKey: "LiquidXDemo")
-        credentials = defaults.bool(forKey: "LiquidXUITesting") ? EphemeralCredentialStore() : KeychainCredentialStore()
+        let uiTesting = defaults.bool(forKey: "LiquidXUITesting")
+        credentials = uiTesting ? EphemeralCredentialStore() : KeychainCredentialStore()
+        webCredentials = uiTesting ? EphemeralStore<WebCredentials>() : KeychainStore<WebCredentials>()
     }
 
     var effectiveClientID: String {
@@ -64,8 +68,20 @@ public final class AppModel {
         #endif
         if launchDemo {
             await startDemo()
-        } else if let stored = credentials.load() {
-            await activate(XClient(credentials: stored, store: credentials))
+            return
+        }
+        // Keychain reads can block on a system permission prompt (notably for
+        // ad hoc signed development builds), so never do them on the main actor.
+        let credentials = credentials
+        let webCredentials = webCredentials
+        let preferWeb = UserDefaults.standard.string(forKey: Self.connectionKey) == ConnectionKind.webSession.rawValue
+        let (oauth, web) = await Task.detached(priority: .userInitiated) {
+            preferWeb ? (nil, webCredentials.load()) : (credentials.load(), webCredentials.load())
+        }.value
+        if let web, web.isComplete, preferWeb || oauth == nil {
+            await activate(WebClient(credentials: web, store: webCredentials))
+        } else if let oauth {
+            await activate(XClient(credentials: oauth, store: credentials))
         } else {
             phase = .signedOut
         }
@@ -107,6 +123,8 @@ public final class AppModel {
                 additionalHeaderFields: [:]
             )
             let client = try await XClient.signIn(with: request, callback: callback, store: credentials)
+            let webCredentials = webCredentials
+            await Task.detached { webCredentials.delete() }.value
             await activate(client)
         } catch ASWebAuthenticationSessionError.canceledLogin {
             // The user closed the sheet; nothing to report.
@@ -116,15 +134,35 @@ public final class AppModel {
         }
     }
 
+    /// Unofficial: signs in with an x.com browser session (see WebClient).
+    func signIn(with web: WebCredentials) async {
+        signInError = nil
+        let credentials = credentials
+        await Task.detached { credentials.delete() }.value
+        webCredentials.save(web)
+        isSigningIn = true
+        defer { isSigningIn = false }
+        await activate(WebClient(credentials: web, store: webCredentials))
+    }
+
+    private func forget(_ service: any XService) {
+        switch service.connection {
+        case .officialAPI: credentials.delete()
+        case .webSession: webCredentials.delete()
+        case .demo: break
+        }
+    }
+
     private func activate(_ service: any XService) async {
         do {
             let me = try await service.me()
             if !service.isDemo, let data = try? JSONEncoder().encode(me) {
                 UserDefaults.standard.set(data, forKey: Self.meCacheKey)
+                UserDefaults.standard.set(service.connection.rawValue, forKey: Self.connectionKey)
             }
             open(service, as: me)
         } catch XAPIError.unauthorized {
-            credentials.delete()
+            forget(service)
             phase = .signedOut
             signInError = XAPIError.unauthorized.localizedDescription
         } catch {
@@ -165,7 +203,7 @@ public final class AppModel {
         guard let session else { return }
         await session.service.signOut()
         if !session.service.isDemo {
-            credentials.delete()
+            forget(session.service)
             FeedCache.deleteAll()
             UserDefaults.standard.removeObject(forKey: Self.meCacheKey)
         }

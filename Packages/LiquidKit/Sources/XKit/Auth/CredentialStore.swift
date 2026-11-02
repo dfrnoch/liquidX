@@ -13,19 +13,24 @@ public struct StoredCredentials: Codable, Hashable, Sendable {
     }
 }
 
-public protocol CredentialStore: Sendable {
-    func load() -> StoredCredentials?
-    func save(_ credentials: StoredCredentials)
+/// Persists one Codable credential value.
+public protocol SecretStore<Value>: Sendable {
+    associatedtype Value: Codable & Sendable
+    func load() -> Value?
+    func save(_ value: Value)
     func delete()
 }
 
-/// Tokens live only in the Keychain (generic password, this device only).
-public struct KeychainCredentialStore: CredentialStore {
-    private let service: String
-    private let account = "x-oauth2"
+public typealias CredentialStore = SecretStore<StoredCredentials>
 
-    public init(service: String = "dev.frnoch.liquidx") {
+/// A generic-password Keychain item, this device only.
+public struct KeychainStore<Value: Codable & Sendable>: SecretStore {
+    private let service: String
+    private let account: String
+
+    public init(service: String = "dev.frnoch.liquidx", account: String) {
         self.service = service
+        self.account = account
     }
 
     private var query: [String: Any] {
@@ -36,7 +41,7 @@ public struct KeychainCredentialStore: CredentialStore {
         ]
     }
 
-    public func load() -> StoredCredentials? {
+    public func load() -> Value? {
         var query = query
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
@@ -44,11 +49,11 @@ public struct KeychainCredentialStore: CredentialStore {
         guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess, let data = result as? Data else {
             return nil
         }
-        return try? JSONDecoder().decode(StoredCredentials.self, from: data)
+        return try? JSONDecoder().decode(Value.self, from: data)
     }
 
-    public func save(_ credentials: StoredCredentials) {
-        guard let data = try? JSONEncoder().encode(credentials) else { return }
+    public func save(_ value: Value) {
+        guard let data = try? JSONEncoder().encode(value) else { return }
         let attributes: [String: Any] = [
             kSecValueData as String: data,
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
@@ -64,15 +69,26 @@ public struct KeychainCredentialStore: CredentialStore {
     }
 }
 
-/// In-memory store for tests and UI-test runs.
-public final class EphemeralCredentialStore: CredentialStore {
-    private let storage = Mutex<StoredCredentials?>(nil)
+/// OAuth tokens for the official API.
+public typealias KeychainCredentialStore = KeychainStore<StoredCredentials>
 
-    public init(_ credentials: StoredCredentials? = nil) {
-        storage.withLock { $0 = credentials }
+extension KeychainStore where Value == StoredCredentials {
+    public init(service: String = "dev.frnoch.liquidx") {
+        self.init(service: service, account: "x-oauth2")
+    }
+}
+
+/// In-memory store for tests and UI-test runs.
+public final class EphemeralStore<Value: Codable & Sendable>: SecretStore {
+    private let storage = Mutex<Value?>(nil)
+
+    public init(_ value: Value? = nil) {
+        storage.withLock { $0 = value }
     }
 
-    public func load() -> StoredCredentials? { storage.withLock { $0 } }
-    public func save(_ credentials: StoredCredentials) { storage.withLock { $0 = credentials } }
+    public func load() -> Value? { storage.withLock { $0 } }
+    public func save(_ value: Value) { storage.withLock { $0 = value } }
     public func delete() { storage.withLock { $0 = nil } }
 }
+
+public typealias EphemeralCredentialStore = EphemeralStore<StoredCredentials>

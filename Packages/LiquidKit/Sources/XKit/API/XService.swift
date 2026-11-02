@@ -61,14 +61,30 @@ public struct TimelinePage: Hashable, Sendable, Codable {
     }
 }
 
+public enum HomeFeed: String, Hashable, Sendable, Codable, CaseIterable {
+    /// X's ranked "For you" timeline (x.com web session only).
+    case forYou
+    /// Reverse-chronological posts from accounts you follow.
+    case following
+}
+
 public struct HomeFilter: Hashable, Sendable, Codable {
     public var hideReplies: Bool
     public var hideReposts: Bool
+    public var feed: HomeFeed
 
-    public init(hideReplies: Bool = false, hideReposts: Bool = false) {
+    public init(hideReplies: Bool = false, hideReposts: Bool = false, feed: HomeFeed = .following) {
         self.hideReplies = hideReplies
         self.hideReposts = hideReposts
+        self.feed = feed
     }
+}
+
+/// How LiquidX talks to X.
+public enum ConnectionKind: String, Sendable {
+    case officialAPI
+    case webSession
+    case demo
 }
 
 /// Everything the interface needs from X. `XClient` talks to the real API;
@@ -76,6 +92,9 @@ public struct HomeFilter: Hashable, Sendable, Codable {
 /// screenshotted, and tested) without an X developer account.
 public protocol XService: Sendable {
     var isDemo: Bool { get }
+    var connection: ConnectionKind { get }
+    /// Feeds the home timeline can show; the first is the default.
+    var homeFeeds: [HomeFeed] { get }
 
     func me() async throws -> XUser
     func homeTimeline(_ page: PageRequest, filter: HomeFilter) async throws -> TimelinePage
@@ -95,4 +114,9 @@ public protocol XService: Sendable {
     func createPost(text: String, replyingTo: String?) async throws -> XPost
 
     func signOut() async
+}
+
+extension XService {
+    public var connection: ConnectionKind { isDemo ? .demo : .officialAPI }
+    public var homeFeeds: [HomeFeed] { [.following] }
 }

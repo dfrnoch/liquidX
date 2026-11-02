@@ -28,6 +28,13 @@ public struct SettingsView: View {
                                 .background(.orange.opacity(0.2), in: Capsule())
                         }
                     }
+                    LabeledContent("Connection") {
+                        switch session.service.connection {
+                        case .officialAPI: Text("Official X API")
+                        case .webSession: Text("x.com session (unofficial)").foregroundStyle(.orange)
+                        case .demo: Text("Demo")
+                        }
+                    }
                     Button(session.service.isDemo ? "Leave Demo" : "Sign Out", role: .destructive) {
                         Task { await model.signOut() }
                     }

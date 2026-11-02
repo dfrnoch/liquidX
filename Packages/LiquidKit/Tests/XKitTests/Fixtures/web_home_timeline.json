@@ -1,0 +1,46 @@
+{
+  "data": { "home": { "home_timeline_urt": { "instructions": [ { "type": "TimelineAddEntries", "entries": [
+    { "entryId": "cursor-top-1", "content": { "entryType": "TimelineTimelineCursor", "value": "TOP", "cursorType": "Top" } },
+    { "entryId": "tweet-100", "content": { "entryType": "TimelineTimelineItem", "itemContent": { "itemType": "TimelineTweet", "tweet_results": { "result": {
+      "__typename": "Tweet", "rest_id": "100",
+      "core": { "user_results": { "result": { "__typename": "User", "rest_id": "1", "is_blue_verified": true,
+        "core": { "name": "Mira Okafor", "screen_name": "miraokafor", "created_at": "Tue Jun 03 10:00:00 +0000 2014" },
+        "avatar": { "image_url": "https://pbs.twimg.com/profile_images/1/m_normal.jpg" },
+        "banner": { "image_url": "https://pbs.twimg.com/profile_banners/1/123" },
+        "location": { "location": "Lisbon" }, "privacy": { "protected": false },
+        "profile_bio": { "description": "Designer at https://t.co/abc", "entities": { "description": { "urls": [ { "url": "https://t.co/abc", "expanded_url": "https://northwind.example", "display_url": "northwind.example" } ] } } },
+        "relationship_counts": { "followers": 48200, "following": 611 },
+        "relationship_perspectives": { "following": true },
+        "tweet_counts": { "tweets": 8402 }, "verification": { "verified": false } } } },
+      "views": { "count": "9200", "state": "EnabledWithCount" },
+      "legacy": { "id_str": "100", "full_text": "Glass everywhere &amp; nowhere https://t.co/pic1", "created_at": "Mon Nov 02 22:00:00 +0000 2026",
+        "conversation_id_str": "100", "favorite_count": 259, "retweet_count": 41, "reply_count": 23, "quote_count": 2, "bookmark_count": 9,
+        "favorited": true, "retweeted": false, "bookmarked": true,
+        "entities": { "urls": [], "media": [ { "url": "https://t.co/pic1", "media_key": "3_1", "type": "photo" } ] },
+        "extended_entities": { "media": [ { "url": "https://t.co/pic1", "media_key": "3_1", "type": "photo", "media_url_https": "https://pbs.twimg.com/media/a.jpg", "ext_alt_text": "A glass desk", "original_info": { "width": 1600, "height": 1000 } } ] } } } } } } },
+    { "entryId": "promoted-tweet-555", "content": { "entryType": "TimelineTimelineItem", "itemContent": { "itemType": "TimelineTweet", "promotedMetadata": {}, "tweet_results": { "result": { "__typename": "Tweet", "rest_id": "555", "legacy": { "full_text": "Buy things" } } } } } },
+    { "entryId": "tweet-200", "content": { "entryType": "TimelineTimelineItem", "itemContent": { "itemType": "TimelineTweet", "tweet_results": { "result": {
+      "__typename": "Tweet", "rest_id": "200",
+      "core": { "user_results": { "result": { "__typename": "User", "rest_id": "2", "core": { "name": "Jonas Berg", "screen_name": "jberg" } } } },
+      "legacy": { "full_text": "RT @orbitlab: Aurora tonight", "created_at": "Mon Nov 02 21:00:00 +0000 2026", "retweeted": true,
+        "retweeted_status_result": { "result": { "__typename": "TweetWithVisibilityResults", "tweet": {
+          "__typename": "Tweet", "rest_id": "150",
+          "core": { "user_results": { "result": { "__typename": "User", "rest_id": "3", "profile_image_shape": "Square", "is_blue_verified": true, "verification": { "verified_type": "Business" }, "core": { "name": "Orbit Lab", "screen_name": "orbitlab" } } } },
+          "legacy": { "full_text": "Aurora tonight https://t.co/vid1", "created_at": "Mon Nov 02 20:00:00 +0000 2026", "favorite_count": 18400, "retweeted": true,
+            "extended_entities": { "media": [ { "url": "https://t.co/vid1", "media_key": "7_9", "type": "video", "media_url_https": "https://pbs.twimg.com/ext_tw_video_thumb/v.jpg", "original_info": { "width": 1280, "height": 720 },
+              "video_info": { "duration_millis": 61500, "variants": [ { "content_type": "application/x-mpegURL", "url": "https://video.twimg.com/v.m3u8" }, { "bitrate": 832000, "content_type": "video/mp4", "url": "https://video.twimg.com/low.mp4" }, { "bitrate": 2176000, "content_type": "video/mp4", "url": "https://video.twimg.com/high.mp4" } ] } } ] } } } } } } } } } } },
+    { "entryId": "home-conversation-300", "content": { "entryType": "TimelineTimelineModule", "items": [
+      { "entryId": "home-conversation-300-tweet-300", "item": { "itemContent": { "itemType": "TimelineTweet", "tweet_results": { "result": {
+        "__typename": "Tweet", "rest_id": "300",
+        "core": { "user_results": { "result": { "__typename": "User", "rest_id": "4", "core": { "name": "Priya Raman", "screen_name": "priyacodes" } } } },
+        "quoted_status_result": { "result": { "__typename": "Tweet", "rest_id": "290",
+          "core": { "user_results": { "result": { "__typename": "User", "rest_id": "5", "core": { "name": "Swift Weekly", "screen_name": "swiftweekly" } } } },
+          "legacy": { "full_text": "Issue #412 is out", "created_at": "Sun Nov 01 09:00:00 +0000 2026" } } },
+        "note_tweet": { "note_tweet_results": { "result": { "text": "@miraokafor This is the full long text of the reply https://t.co/q1", "entity_set": { "urls": [] } } } },
+        "legacy": { "full_text": "@miraokafor This is the short text…", "created_at": "Mon Nov 02 19:00:00 +0000 2026",
+          "in_reply_to_status_id_str": "100", "in_reply_to_screen_name": "miraokafor", "is_quote_status": true,
+          "quoted_status_permalink": { "url": "https://t.co/q1", "expanded": "https://x.com/swiftweekly/status/290" } } } } } } } ] } },
+    { "entryId": "tweet-400", "content": { "entryType": "TimelineTimelineItem", "itemContent": { "itemType": "TimelineTweet", "tweet_results": { "result": { "__typename": "TweetTombstone" } } } } },
+    { "entryId": "cursor-bottom-1", "content": { "entryType": "TimelineTimelineCursor", "value": "NEXT-PAGE", "cursorType": "Bottom" } }
+  ] } ] } } }
+}
