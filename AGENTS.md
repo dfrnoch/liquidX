@@ -24,7 +24,10 @@ official X API v2 with user-supplied OAuth 2.0 Client IDs.
   the iPhone/iPad (`PhoneShell`) and Mac (`MacShell`) layouts.
 - `App/`: app target (composition root only), synchronized folder.
 - `UITests/`: XCUITest visual tour in demo mode.
-- `Config/`: xcconfigs, Info.plist, entitlements.
+- `Config/`: xcconfigs, Info.plist, entitlements. `MARKETING_VERSION` in
+  `Shared.xcconfig` is the next production version.
+- `Tools/ReleaseVersion.swift`: release versioning for CI; releases and nightlies
+  are made by `.github/workflows/release.yml` (see `docs/releasing.md`).
 
 ## Commands (verified)
 

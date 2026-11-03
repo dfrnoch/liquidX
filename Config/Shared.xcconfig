@@ -14,6 +14,9 @@ MACOSX_DEPLOYMENT_TARGET = 26.0
 // The next release (MAJOR.MINOR.PATCH). CI overrides CURRENT_PROJECT_VERSION.
 MARKETING_VERSION = 0.1.0
 CURRENT_PROJECT_VERSION = 1
+// The version shown in Settings ▸ About; release builds pass the full label,
+// e.g. 0.1.0-nightly.20261104.12 (docs/releasing.md).
+LIQUIDX_VERSION_LABEL = $(MARKETING_VERSION)-dev
 
 // Swift 6 language mode with the same upcoming features as LiquidKit.
 SWIFT_VERSION = 6.0

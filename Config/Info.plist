@@ -5,6 +5,9 @@
 	<!-- OAuth 2.0 Client ID of your X developer app (Native App type), from Config/Local.xcconfig. -->
 	<key>LXClientID</key>
 	<string>$(LIQUIDX_X_CLIENT_ID)</string>
+	<!-- Full version label: 0.1.0, 0.1.0-nightly.<date>.<build> or 0.1.0-dev locally. -->
+	<key>LXVersionLabel</key>
+	<string>$(LIQUIDX_VERSION_LABEL)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 </dict>

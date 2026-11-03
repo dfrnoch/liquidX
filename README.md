@@ -100,6 +100,13 @@ rate limit, lock or suspend your account, and it breaks whenever x.com changes.
 It is clearly labelled in the app and off by default. Details:
 [docs/web-session.md](docs/web-session.md).
 
+## Download
+
+Mac builds are on the [Releases](https://github.com/dfrnoch/liquidX/releases)
+page: production versions, and nightly pre-releases of `main`. Open the DMG and
+drag LiquidX to Applications. How releases are made is described in
+[docs/releasing.md](docs/releasing.md).
+
 ## Build from source
 
 Requirements: Xcode 27 or later, on macOS 26 or later.

@@ -100,7 +100,7 @@ public struct SettingsView: View {
             }
 
             Section("About") {
-                LabeledContent("Version", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "–")
+                LabeledContent("Version", value: versionText)
                 Link("Source Code on GitHub", destination: URL(string: "https://github.com/dfrnoch/liquidX")!)
                 Text("LiquidX is an independent open-source project and is not affiliated with, endorsed by, or sponsored by X Corp.")
                     .font(.footnote)
@@ -113,6 +113,14 @@ public struct SettingsView: View {
         #if os(macOS)
         .frame(width: 460, height: 520)
         #endif
+    }
+
+    /// "0.1.0-nightly.20261104.12 (12)": the release label and build number.
+    private var versionText: String {
+        let info = Bundle.main.infoDictionary ?? [:]
+        let label = info["LXVersionLabel"] as? String ?? info["CFBundleShortVersionString"] as? String ?? "–"
+        guard let build = info["CFBundleVersion"] as? String else { return label }
+        return "\(label) (\(build))"
     }
 
     private func masked(_ id: String) -> String {
