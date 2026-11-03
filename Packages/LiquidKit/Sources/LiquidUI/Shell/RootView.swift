@@ -132,6 +132,13 @@ public struct LiquidCommands: Commands {
                     .disabled(session == nil)
             }
             Divider()
+            Button("Back") { session?.currentRouter.goBack() }
+                .keyboardShortcut("[")
+                .disabled(session?.currentRouter.canGoBack != true)
+            Button("Forward") { session?.currentRouter.goForward() }
+                .keyboardShortcut("]")
+                .disabled(session?.currentRouter.canGoForward != true)
+            Divider()
             Button("Refresh") {
                 guard let session else { return }
                 Task { await session.home.refresh() }

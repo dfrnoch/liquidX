@@ -165,13 +165,19 @@ struct PostBody: View {
     var isFocused = false
 
     @Environment(\.postStyle) private var style
+    @Environment(\.impliedReplyRecipients) private var impliedRecipients
 
     @Environment(Session.self) private var session
 
+    /// "Replying to" handles, minus the ones the context already makes obvious.
+    private var recipients: [String] {
+        post.replyingTo.filter { !impliedRecipients.contains($0.lowercased()) }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if !post.replyingTo.isEmpty {
-                Text("Replying to \(Text(post.replyingTo.map { "@\($0)" }.joined(separator: " ")).foregroundStyle(Theme.accent))")
+            if !recipients.isEmpty {
+                Text("Replying to \(Text(recipients.map { "@\($0)" }.joined(separator: " ")).foregroundStyle(Theme.accent))")
                     .font(style.meta)
                     .foregroundStyle(.secondary)
             }
@@ -196,6 +202,12 @@ struct PostBody: View {
             }
         }
     }
+}
+
+extension EnvironmentValues {
+    /// Lowercased usernames left out of "Replying to", e.g. the author of the
+    /// post whose replies are listed.
+    @Entry var impliedReplyRecipients: Set<String> = []
 }
 
 /// Shared actions for the row's long-press/right-click menu and "…" button.

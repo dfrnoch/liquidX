@@ -114,16 +114,47 @@ struct PostDetailView: View {
             ContentUnavailableView("Replies unavailable", systemImage: "bubble.left.and.exclamationmark.bubble.right", description: Text(message))
                 .padding(.top, 24)
         case .loaded:
-            if replies.isEmpty {
+            let (thread, related) = partitionedReplies
+            if thread.isEmpty {
                 Text("No replies yet")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)
                     .padding(32)
+                    .rowSeparator()
             } else {
-                ForEach(replies) { PostRow(item: $0) }
+                ForEach(thread) { PostRow(item: $0) }
+                    .environment(\.impliedReplyRecipients, [post.author.username.lowercased()])
+            }
+            if !related.isEmpty {
+                Text("Discover more")
+                    .font(.title3.weight(.heavy))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 20)
+                    .padding(.bottom, 8)
+                    .overlay(alignment: .top) { Rectangle().fill(Theme.hairline.opacity(0.6)).frame(height: 6) }
+                    .rowSeparator()
+                    .accessibilityAddTraits(.isHeader)
+                ForEach(related) { PostRow(item: $0) }
             }
         }
+    }
+
+    /// Posts in this post's conversation, then everything else the source
+    /// mixed in (x.com appends unrelated "Discover more" posts).
+    private var partitionedReplies: (thread: [XTimelineItem], related: [XTimelineItem]) {
+        let conversation = post.conversationID ?? post.id
+        var thread: [XTimelineItem] = []
+        var related: [XTimelineItem] = []
+        for item in replies {
+            if let other = item.post.conversationID, other != conversation {
+                related.append(item)
+            } else {
+                thread.append(item)
+            }
+        }
+        return (thread, related)
     }
 
     private var replyBar: some View {

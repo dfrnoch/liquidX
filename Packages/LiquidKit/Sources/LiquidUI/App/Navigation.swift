@@ -39,10 +39,20 @@ enum Route: Hashable {
     case search(String)
 }
 
-/// Navigation path of one section's stack.
+/// Navigation path of one section's stack, with Safari-style forward history:
+/// going back (by any means, including the system back button) keeps the
+/// popped routes until something new is pushed.
 @Observable
 final class Router {
-    var path: [Route] = []
+    var path: [Route] = [] {
+        didSet { recordForward(from: oldValue) }
+    }
+
+    /// Routes to go forward to; the next one is last.
+    private(set) var forwardRoutes: [Route] = []
+
+    var canGoBack: Bool { !path.isEmpty }
+    var canGoForward: Bool { !forwardRoutes.isEmpty }
 
     func push(_ route: Route) {
         path.append(route)
@@ -50,6 +60,32 @@ final class Router {
 
     func popToRoot() {
         path.removeAll()
+    }
+
+    func goBack() {
+        guard canGoBack else { return }
+        path.removeLast()
+    }
+
+    func goForward() {
+        guard let next = forwardRoutes.last else { return }
+        path.append(next)
+    }
+
+    private func recordForward(from old: [Route]) {
+        if path.count < old.count, old.starts(with: path) {
+            forwardRoutes += old[path.count...].reversed()
+        } else if path.count > old.count, path.starts(with: old) {
+            for route in path[old.count...] {
+                if forwardRoutes.last == route {
+                    forwardRoutes.removeLast()
+                } else {
+                    forwardRoutes.removeAll()
+                }
+            }
+        } else if path != old {
+            forwardRoutes.removeAll()
+        }
     }
 }
 
