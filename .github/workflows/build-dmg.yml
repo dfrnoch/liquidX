@@ -124,6 +124,11 @@ jobs:
           [[ $(plutil -extract CFBundleVersion raw "$info") == "$BUILD_NUMBER" ]]
           [[ $(plutil -extract LXVersionLabel raw "$info") == "$VERSION_LABEL" ]]
           codesign --verify --deep --strict "$app"
+          # Notarization rejects apps that allow debugging.
+          if codesign -d --entitlements - --xml "$app" 2>/dev/null | grep -q get-task-allow; then
+            echo "::error::The Release app has the get-task-allow entitlement."
+            exit 1
+          fi
           if [[ "$NOTARIZED" == true ]]; then
             codesign --verify -R='identifier "dev.frnoch.liquidx" and anchor apple generic and certificate leaf[subject.OU] = "ZJ37A69485" and certificate leaf[field.1.2.840.113635.100.6.1.13] exists' "$app"
           fi
@@ -142,7 +147,11 @@ jobs:
             xcrun notarytool submit "$1" --keychain-profile LiquidX --keychain "$keychain" \
               --wait --timeout 20m --output-format json > "$2"
             cat "$2"
-            [[ $(plutil -extract status raw "$2") == Accepted ]]
+            if [[ $(plutil -extract status raw "$2") != Accepted ]]; then
+              # Apple's per-file reasons for the rejection.
+              xcrun notarytool log "$(plutil -extract id raw "$2")" --keychain-profile LiquidX --keychain "$keychain" || true
+              return 1
+            fi
           }
           if [[ "$NOTARIZED" == true ]]; then
             ditto -c -k --keepParent "$app" "$RUNNER_TEMP/LiquidX.zip"
