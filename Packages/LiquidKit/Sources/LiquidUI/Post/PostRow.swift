@@ -12,7 +12,7 @@ struct PostRow: View {
     @State private var isHovering = false
 
     private var post: XPost { item.post }
-    private var avatarSize: CGFloat { style.showsAvatarColumn ? 44 : 34 }
+    private var avatarSize: CGFloat { style.showsAvatarColumn ? 44 : 40 }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -43,7 +43,7 @@ struct PostRow: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(alignment: .center, spacing: 10) {
                         avatar
-                        PostHeader(post: post)
+                        PostHeader(post: post, isStacked: true)
                     }
                     content
                 }
@@ -99,13 +99,15 @@ private struct RepostLabelStyle: LabelStyle {
 struct PostHeader: View {
     let post: XPost
     var showsMenu = true
+    /// Name over handle; otherwise only on compact widths (iPhone).
+    var isStacked = false
 
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.postStyle) private var style
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 4) {
-            if sizeClass == .compact {
+            if isStacked || sizeClass == .compact {
                 VStack(alignment: .leading, spacing: 1) {
                     name
                     meta

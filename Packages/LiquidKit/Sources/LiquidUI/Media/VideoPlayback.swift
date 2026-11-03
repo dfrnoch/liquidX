@@ -1,4 +1,5 @@
 import AVFoundation
+import AVKit
 import SwiftUI
 import XKit
 
@@ -99,17 +100,38 @@ struct InlineVideo: View {
     @State private var playback: Playback?
     @State private var isMuted = true
 
+    private static var hasNativeControls: Bool {
+        #if os(macOS)
+        true
+        #else
+        false
+        #endif
+    }
+
     var body: some View {
         RemoteImage(posterURL, pointSize: pointSize)
             .overlay {
                 if let playback {
+                    #if os(macOS)
+                    if media.kind == .video {
+                        // Native inline player: play/pause, scrubbing, volume
+                        // and a full-screen (maximize) button.
+                        InlineControlsPlayerView(player: playback.player)
+                            .transition(.opacity)
+                    } else {
+                        PlayerLayerView(player: playback.player)
+                            .allowsHitTesting(false)
+                            .transition(.opacity)
+                    }
+                    #else
                     PlayerLayerView(player: playback.player)
                         .allowsHitTesting(false)
                         .transition(.opacity)
+                    #endif
                 }
             }
             .overlay(alignment: .bottomTrailing) {
-                if media.kind == .video {
+                if media.kind == .video, !Self.hasNativeControls {
                     Button {
                         isMuted.toggle()
                         if !isMuted { Playback.activateAudio() }
@@ -142,3 +164,25 @@ struct InlineVideo: View {
             }
     }
 }
+
+#if os(macOS)
+/// AVKit's player view with floating controls that appear on hover, plus its
+/// full-screen toggle, for always-inline video on the Mac.
+struct InlineControlsPlayerView: NSViewRepresentable {
+    let player: AVPlayer
+
+    func makeNSView(context: Context) -> AVPlayerView {
+        let view = AVPlayerView()
+        view.player = player
+        view.controlsStyle = .floating
+        view.showsFullScreenToggleButton = true
+        view.allowsPictureInPicturePlayback = true
+        view.videoGravity = .resizeAspectFill
+        return view
+    }
+
+    func updateNSView(_ view: AVPlayerView, context: Context) {
+        if view.player !== player { view.player = player }
+    }
+}
+#endif

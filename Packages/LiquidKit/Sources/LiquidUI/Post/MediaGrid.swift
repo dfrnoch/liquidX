@@ -58,6 +58,14 @@ struct MediaGrid: View {
         }
     }
 
+    private static func playsInline(_ item: XMedia) -> Bool {
+        #if os(macOS)
+        item.kind == .video && item.videoURL != nil
+        #else
+        false
+        #endif
+    }
+
     private func tile(_ index: Int) -> some View {
         let item = media[index]
         return surface(item)
@@ -78,7 +86,9 @@ struct MediaGrid: View {
                 }
             }
             .contentShape(Rectangle())
-            .onTapGesture { onOpen(index) }
+            // On the Mac videos play inline with native controls (and their
+            // own full-screen button), so clicks belong to the player.
+            .if(!Self.playsInline(item)) { $0.onTapGesture { onOpen(index) } }
             .accessibilityElement()
             .accessibilityLabel(Text(item.altText ?? (item.kind == .photo ? "Image" : "Video")))
             .accessibilityAddTraits(.isButton)
