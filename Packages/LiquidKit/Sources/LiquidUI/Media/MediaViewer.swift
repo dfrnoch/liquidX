@@ -189,29 +189,12 @@ private struct InlinePlayer: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
-            let playback = Playback(url: url, loops: loops)
+            let playback = Playback(url: url, loops: loops, muted: loops)
+            Playback.activateAudio()
             self.playback = playback
             playback.player.play()
         }
         .onDisappear { playback?.player.pause() }
-    }
-}
-
-/// Owns the player (and, for GIFs, the looper that keeps it repeating).
-private final class Playback {
-    let player: AVQueuePlayer
-    private let looper: AVPlayerLooper?
-
-    init(url: URL, loops: Bool) {
-        let item = AVPlayerItem(url: url)
-        player = AVQueuePlayer()
-        if loops {
-            player.isMuted = true
-            looper = AVPlayerLooper(player: player, templateItem: item)
-        } else {
-            looper = nil
-            player.insert(item, after: nil)
-        }
     }
 }
 

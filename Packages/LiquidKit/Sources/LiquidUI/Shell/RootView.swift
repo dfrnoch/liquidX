@@ -42,6 +42,15 @@ private struct SessionView: View {
                 }
             }
             .overlay {
+                if let context = session.quickComposer {
+                    FloatingComposer(context: context)
+                        .environment(session)
+                        .environment(session.currentRouter)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                        .zIndex(5)
+                }
+            }
+            .overlay {
                 if let viewer = session.mediaViewer {
                     MediaViewer(context: viewer) {
                         withAnimation(.smooth(duration: 0.25)) { session.mediaViewer = nil }

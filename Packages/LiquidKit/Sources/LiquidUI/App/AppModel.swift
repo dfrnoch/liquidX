@@ -221,6 +221,9 @@ public final class AppModel {
         if let id = UserDefaults.standard.string(forKey: "LiquidXOpenPost") {
             session.router(for: session.section).push(.postID(id))
         }
+        if UserDefaults.standard.bool(forKey: "LiquidXCompose") {
+            session.compose()
+        }
         if let query = UserDefaults.standard.string(forKey: "LiquidXSearch") {
             session.submitSearch(query)
         }

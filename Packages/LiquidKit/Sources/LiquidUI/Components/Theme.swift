@@ -83,6 +83,20 @@ extension View {
         #endif
     }
 
+    /// A Liquid Glass circle around an icon, the size of the neighbouring
+    /// glass buttons (menus can't use the glass button style reliably).
+    func glassCircle() -> some View {
+        #if os(macOS)
+        frame(width: 36, height: 36)
+            .contentShape(Circle())
+            .glassEffect(.regular.interactive(), in: .circle)
+        #else
+        frame(width: 48, height: 48)
+            .contentShape(Circle())
+            .glassEffect(.regular.interactive(), in: .circle)
+        #endif
+    }
+
     @ViewBuilder
     func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
         if condition { transform(self) } else { self }

@@ -128,7 +128,7 @@ private struct ReplyContext: View {
     }
 }
 
-private struct CharacterRing: View {
+struct CharacterRing: View {
     let count: Int
     let limit: Int
 

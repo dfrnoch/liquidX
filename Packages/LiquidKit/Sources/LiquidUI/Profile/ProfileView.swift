@@ -379,15 +379,14 @@ private struct ProfileHeader: View {
         } label: {
             Image(systemName: "ellipsis")
                 .font(.body.weight(.semibold))
-                .frame(width: 24, height: 24)
+                .foregroundStyle(.primary)
+                .glassCircle()
         }
         .menuStyle(.button)
-        .buttonStyle(.glass)
-        .buttonBorderShape(.circle)
-        .controlSize(.large)
+        .buttonStyle(.plain)
         .menuIndicator(.hidden)
         .fixedSize()
-        .neutralGlassTint()
+        .hoverPointer()
         .accessibilityLabel("More")
     }
 

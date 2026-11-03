@@ -47,15 +47,26 @@ struct MediaGrid: View {
         }
     }
 
+    @ViewBuilder
+    private func surface(_ item: XMedia) -> some View {
+        let poster = item.imageURL(media.count == 1 ? .medium : .small)
+        let size: CGFloat = media.count == 1 ? 600 : 320
+        if item.kind != .photo, let video = item.videoURL {
+            InlineVideo(media: item, url: video, posterURL: poster, pointSize: size)
+        } else {
+            RemoteImage(poster, pointSize: size)
+        }
+    }
+
     private func tile(_ index: Int) -> some View {
         let item = media[index]
-        return RemoteImage(item.imageURL(media.count == 1 ? .medium : .small), pointSize: media.count == 1 ? 600 : 320)
+        return surface(item)
             .overlay(alignment: .bottomLeading) {
                 if item.kind != .photo {
                     VideoBadge(media: item)
                 }
             }
-            .overlay(alignment: .bottomTrailing) {
+            .overlay(alignment: item.kind == .photo ? .bottomTrailing : .topTrailing) {
                 if let alt = item.altText, !alt.isEmpty {
                     Text("ALT")
                         .font(.caption2.weight(.heavy))

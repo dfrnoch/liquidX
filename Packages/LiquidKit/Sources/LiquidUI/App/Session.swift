@@ -22,6 +22,8 @@ final class Session {
     private(set) var unreadMentions = 0
 
     var composer: ComposerContext?
+    /// The floating glass composer (new posts and quick replies).
+    var quickComposer: QuickComposeContext?
     var isShowingSettings = false
     var mediaViewer: MediaViewerContext?
     var toast: Toast?
@@ -142,7 +144,18 @@ final class Session {
 
     // MARK: - Actions
 
-    func compose(replyingTo post: XPost? = nil, quoting: XPost? = nil, draft: String = "") {
+    /// New posts and replies open the floating glass composer; quotes need the
+    /// full composer to show the quoted post.
+    func compose(replyingTo post: XPost? = nil, quoting: XPost? = nil) {
+        if let quoting {
+            openFullComposer(quoting: quoting)
+        } else {
+            withAnimation(.snappy(duration: 0.35)) { quickComposer = QuickComposeContext(replyingTo: post) }
+        }
+    }
+
+    func openFullComposer(replyingTo post: XPost? = nil, quoting: XPost? = nil, draft: String = "") {
+        quickComposer = nil
         composer = ComposerContext(replyingTo: post, quoting: quoting, initialText: draft)
     }
 
@@ -177,6 +190,11 @@ final class Session {
     func signOut() {
         onSignOut()
     }
+}
+
+struct QuickComposeContext: Identifiable {
+    let id = UUID()
+    var replyingTo: XPost?
 }
 
 struct ComposerContext: Identifiable {
