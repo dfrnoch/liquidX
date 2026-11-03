@@ -60,9 +60,30 @@ final class Session {
     }
 
     private static func makeHome(service: any XService, me: XUser, filter: HomeFilter) -> FeedStore {
+        FeedStore(cache: homeCache(service: service, me: me, filter: filter)) { page in
+            try await service.homeTimeline(page, filter: filter)
+        }
+    }
+
+    private static func homeCache(service: any XService, me: XUser, filter: HomeFilter) -> FeedCache? {
         let unfiltered = !filter.hideReplies && !filter.hideReposts
-        let cache = service.isDemo || !unfiltered ? nil : FeedCache(name: "home-\(me.id)-\(filter.feed.rawValue)")
-        return FeedStore(cache: cache) { page in try await service.homeTimeline(page, filter: filter) }
+        return service.isDemo || !unfiltered ? nil : FeedCache(name: "home-\(me.id)-\(filter.feed.rawValue)")
+    }
+
+    /// Builds the other home feeds' stores with their caches decoded off the
+    /// main actor. Decoding while switching feeds stalled the picker.
+    private func preloadHomeFeeds() async {
+        let service = service
+        for feed in service.homeFeeds {
+            let filter = HomeFilter(hideReplies: homeFilter.hideReplies, hideReposts: homeFilter.hideReposts, feed: feed)
+            guard homeStores[filter] == nil else { continue }
+            let cache = Self.homeCache(service: service, me: me, filter: filter)
+            let restored = await Task.detached(priority: .utility) { cache?.load() }.value
+            guard homeStores[filter] == nil else { continue }
+            homeStores[filter] = FeedStore(cache: cache, restored: restored) { page in
+                try await service.homeTimeline(page, filter: filter)
+            }
+        }
     }
 
     private func rebuildHome() {
@@ -103,7 +124,8 @@ final class Session {
     func start() async {
         async let mentions: Void = refreshMentionBadge()
         async let trends: Void = loadTrends()
-        _ = await (mentions, trends)
+        async let feeds: Void = preloadHomeFeeds()
+        _ = await (mentions, trends, feeds)
     }
 
     private func refreshMentionBadge() async {

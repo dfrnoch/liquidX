@@ -28,36 +28,31 @@ final class FeedStore {
     @ObservationIgnored private let cache: FeedCache?
     @ObservationIgnored private var refreshTask: Task<Void, Never>?
     @ObservationIgnored private(set) var lastRefresh: Date?
-    @ObservationIgnored private var hasRestoredCache = false
 
-    init(cache: FeedCache? = nil, fetch: @escaping Fetch) {
+    /// Reads the cache right away, so the first frame shows the last timeline.
+    convenience init(cache: FeedCache? = nil, fetch: @escaping Fetch) {
+        self.init(cache: cache, restored: cache?.load(), fetch: fetch)
+    }
+
+    /// `restored` is the cache's page, already decoded (off the main actor).
+    init(cache: FeedCache?, restored: TimelinePage?, fetch: @escaping Fetch) {
         self.fetch = fetch
         self.cache = cache
+        if let restored, !restored.items.isEmpty {
+            items = restored.items
+            nextCursor = restored.nextCursor
+            phase = .loaded
+        }
     }
 
     var isEmpty: Bool { items.isEmpty }
 
     func loadIfNeeded() async {
-        await restoreCacheIfNeeded()
         switch phase {
         case .idle: await loadFirstPage()
         case .loaded where lastRefresh == nil: await refresh()
         default: break
         }
-    }
-
-    /// Shows the cached timeline before the first fetch. Decoding runs off the
-    /// main actor: rich text is slow to decode, and doing it while switching
-    /// feeds would stall the segmented control's animation.
-    private func restoreCacheIfNeeded() async {
-        guard !hasRestoredCache else { return }
-        hasRestoredCache = true
-        guard let cache, phase == .idle else { return }
-        let cached = await Task.detached(priority: .userInitiated) { cache.load() }.value
-        guard phase == .idle, items.isEmpty, let cached, !cached.items.isEmpty else { return }
-        items = cached.items
-        nextCursor = cached.nextCursor
-        phase = .loaded
     }
 
     func reload() async {

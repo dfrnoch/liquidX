@@ -98,6 +98,12 @@ struct FeedScreen<Header: View>: View {
             position.scrollTo(edge: .top)
         }
         .onChange(of: scrollToTopTrigger) { scrollToTop() }
+        // Switching feeds swaps the store in place: rebuilding the screen
+        // would also rebuild the toolbar and cut the feed picker's animation.
+        .onChange(of: ObjectIdentifier(store)) {
+            position.scrollTo(edge: .top)
+            isNearTop = true
+        }
         #if os(macOS)
         // Every Mac page shows at least one toolbar item, so the title bar keeps
         // the same height across sections.
@@ -110,7 +116,7 @@ struct FeedScreen<Header: View>: View {
             }
         }
         #endif
-        .task { await store.loadIfNeeded() }
+        .task(id: ObjectIdentifier(store)) { await store.loadIfNeeded() }
     }
 
     private func scrollToTop() {
