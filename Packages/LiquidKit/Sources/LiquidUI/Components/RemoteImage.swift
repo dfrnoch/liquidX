@@ -66,6 +66,11 @@ struct DemoArtwork: View {
         [Color(red: 0.98, green: 0.85, blue: 0.6), Color(red: 0.95, green: 0.6, blue: 0.4), Color(red: 0.85, green: 0.35, blue: 0.3), Color(red: 0.9, green: 0.75, blue: 0.5), Color(red: 0.8, green: 0.45, blue: 0.35), Color(red: 0.55, green: 0.2, blue: 0.25), Color(red: 0.6, green: 0.5, blue: 0.4), Color(red: 0.45, green: 0.25, blue: 0.25), Color(red: 0.25, green: 0.1, blue: 0.15)],
     ]
 
+    /// A representative colour of this artwork (its centre), for tinting.
+    static func dominantColor(seed: String) -> Color {
+        DemoArtwork(seed: seed).colors[4]
+    }
+
     private var colors: [Color] {
         let lower = seed.lowercased()
         if let match = Self.palettes.first(where: { lower.contains($0.0) }) { return match.1 }

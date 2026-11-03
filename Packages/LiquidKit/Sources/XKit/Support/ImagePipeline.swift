@@ -34,6 +34,7 @@ public final class ImagePipeline: Sendable {
 
     private let memory = Mutex(Memory())
     private let inFlight = Mutex<[Key: Task<CGImage?, Never>]>([:])
+    private let averages = Mutex<[URL: RGBColor]>([:])
     private let memoryLimit: Int
     private let session: URLSession
 
@@ -115,8 +116,45 @@ public final class ImagePipeline: Sendable {
         }
     }
 
+    /// The image's average colour (for tinting UI around it), cached per URL.
+    public func averageColor(for url: URL) async -> RGBColor? {
+        if let cached = averages.withLock({ $0[url] }) { return cached }
+        guard let image = await image(for: url, maxPixelSize: 64) else { return nil }
+        let color = Self.average(of: image)
+        if let color { averages.withLock { $0[url] = color } }
+        return color
+    }
+
+    private static func average(of image: CGImage) -> RGBColor? {
+        var pixel = [UInt8](repeating: 0, count: 4)
+        let drawn = pixel.withUnsafeMutableBytes { buffer -> Bool in
+            guard let context = CGContext(
+                data: buffer.baseAddress, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+                space: CGColorSpace(name: CGColorSpace.sRGB)!,
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            ) else { return false }
+            context.interpolationQuality = .medium
+            context.draw(image, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+            return true
+        }
+        guard drawn else { return nil }
+        return RGBColor(red: Double(pixel[0]) / 255, green: Double(pixel[1]) / 255, blue: Double(pixel[2]) / 255)
+    }
+
     public func removeAll() {
         memory.withLock { $0 = Memory() }
         session.configuration.urlCache?.removeAllCachedResponses()
+    }
+}
+
+public struct RGBColor: Hashable, Sendable {
+    public var red: Double
+    public var green: Double
+    public var blue: Double
+
+    public init(red: Double, green: Double, blue: Double) {
+        self.red = red
+        self.green = green
+        self.blue = blue
     }
 }

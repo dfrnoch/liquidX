@@ -114,6 +114,7 @@ struct TrendsList: View {
             }
             .readableWidth()
         }
+        .scrollEdgeEffectStyle(.soft, for: .top)
     }
 }
 

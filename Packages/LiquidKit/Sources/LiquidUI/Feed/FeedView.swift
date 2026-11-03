@@ -70,6 +70,7 @@ struct FeedScreen<Header: View>: View {
             .readableWidth()
         }
         .scrollPosition($position, anchor: .top)
+        .scrollEdgeEffectStyle(.soft, for: .top)
         .onScrollGeometryChange(for: Bool.self) { geometry in
             geometry.contentOffset.y + geometry.contentInsets.top < 40
         } action: { _, nearTop in

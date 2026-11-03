@@ -72,8 +72,12 @@ final class ProfileModel {
 
 struct ProfileView: View {
     @State private var model: ProfileModel
+    /// Average colour of the banner (or avatar), bled into the header.
+    @State private var tint: Color?
+    @State private var isPastBanner = false
     @Environment(Session.self) private var session
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @Environment(\.colorScheme) private var colorScheme
 
     init(user: XUser) {
         _model = State(initialValue: ProfileModel(user: user, username: user.username))
@@ -84,6 +88,16 @@ struct ProfileView: View {
     }
 
     private var bannerHeight: CGFloat { sizeClass == .compact ? 160 : 220 }
+
+    private static func sampleTint(for user: XUser) async -> Color? {
+        for url in [user.bannerURL, user.avatarURL].compactMap({ $0 }) {
+            if url.scheme == "demo" { return DemoArtwork.dominantColor(seed: url.path()) }
+            if let rgb = await ImagePipeline.shared.averageColor(for: url) {
+                return Color(red: rgb.red, green: rgb.green, blue: rgb.blue)
+            }
+        }
+        return nil
+    }
 
     var body: some View {
         Group {
@@ -100,10 +114,11 @@ struct ProfileView: View {
     }
 
     private func content(_ user: XUser) -> some View {
-        ScrollView {
+        let wash = tint.map { $0.mix(with: Theme.canvas, by: colorScheme == .dark ? 0.45 : 0.7) }
+        return ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
                 ProfileBanner(user: user, height: bannerHeight)
-                ProfileHeader(user: user, model: model)
+                ProfileHeader(user: user, model: model, ringColor: wash ?? Theme.canvas)
                 Picker("Section", selection: $model.tab) {
                     ForEach(ProfileModel.Tab.allCases) { Text($0.title).tag($0) }
                 }
@@ -122,10 +137,37 @@ struct ProfileView: View {
                     }
                 }
             }
+            .background(alignment: .top) {
+                // The banner's colour leaks down behind the header and fades
+                // into the canvas, like the Liquid Glass X concepts.
+                if let wash {
+                    LinearGradient(
+                        stops: [
+                            .init(color: wash, location: 0),
+                            .init(color: wash.mix(with: Theme.canvas, by: 0.5), location: 0.55),
+                            .init(color: Theme.canvas, location: 1),
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: bannerHeight + 560)
+                    .transition(.opacity)
+                }
+            }
             .readableWidth()
         }
+        .animation(.easeOut(duration: 0.35), value: tint)
         .ignoresSafeArea(edges: .top)
-        .scrollEdgeEffectHidden(true, for: .top)
+        // Keep the banner clean under the bar; blur softly once content
+        // scrolls underneath it.
+        .scrollEdgeEffectStyle(.soft, for: .top)
+        .scrollEdgeEffectHidden(!isPastBanner, for: .top)
+        .onScrollGeometryChange(for: Bool.self) { geometry in
+            geometry.contentOffset.y > bannerHeight - 90
+        } action: { _, past in
+            withAnimation(.easeInOut(duration: 0.2)) { isPastBanner = past }
+        }
+        .task(id: user.bannerURL ?? user.avatarURL) { tint = await Self.sampleTint(for: user) }
         .refreshable {
             await model.load(using: session)
             await model.currentFeed?.refresh()
@@ -135,7 +177,7 @@ struct ProfileView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                ProfileTitle(user: user)
+                ProfileTitle(user: user, overBanner: !isPastBanner)
             }
             .sharedBackgroundVisibility(.hidden)
             ToolbarItem(placement: .topBarTrailing) {
@@ -156,22 +198,24 @@ struct ProfileView: View {
     }
 }
 
-/// "Name ✓ 1,204 posts" floating over the banner in a glass capsule.
+/// "Name ✓ 1,204 posts" written straight over the banner (white with a soft
+/// shadow), then in the regular text colour once the banner scrolls away.
 private struct ProfileTitle: View {
     let user: XUser
+    let overBanner: Bool
 
     var body: some View {
         HStack(spacing: 6) {
             Text(user.name).font(.headline).lineLimit(1)
             VerifiedBadge(verification: user.verification, size: 15)
             Text("\(Formatting.compact(user.postCount)) posts")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.subheadline.weight(.medium))
+                .opacity(0.72)
                 .lineLimit(1)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
-        .glassEffect(.regular, in: .capsule)
+        .foregroundStyle(overBanner ? AnyShapeStyle(.white) : AnyShapeStyle(.primary))
+        .shadow(color: .black.opacity(overBanner ? 0.45 : 0), radius: 6, y: 1)
+        .animation(.easeInOut(duration: 0.2), value: overBanner)
     }
 }
 
@@ -199,10 +243,6 @@ private struct ProfileBanner: View {
             return content
                 .scaleEffect(1 + pull / height, anchor: .bottom)
         }
-        .overlay(alignment: .bottom) {
-            // Soft fade so the avatar ring and header blend into the canvas.
-            LinearGradient(colors: [.clear, Theme.canvas.opacity(0.35)], startPoint: .center, endPoint: .bottom)
-        }
         .accessibilityHidden(true)
     }
 }
@@ -210,6 +250,7 @@ private struct ProfileBanner: View {
 private struct ProfileHeader: View {
     let user: XUser
     let model: ProfileModel
+    var ringColor: Color = Theme.canvas
 
     @Environment(Session.self) private var session
     @Environment(\.openURL) private var openURL
@@ -223,7 +264,7 @@ private struct ProfileHeader: View {
             HStack(alignment: .bottom) {
                 Avatar(user: user, size: avatarSize)
                     .padding(4)
-                    .background(Theme.canvas, in: user.verification == .business
+                    .background(ringColor, in: user.verification == .business
                         ? AnyShape(RoundedRectangle(cornerRadius: avatarSize * 0.24, style: .continuous))
                         : AnyShape(Circle()))
                     .offset(y: -avatarSize / 2)
