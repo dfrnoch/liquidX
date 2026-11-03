@@ -114,12 +114,31 @@ struct ProfileView: View {
         .task { await model.load(using: session) }
     }
 
+    /// The banner's colour leaking down behind the header and fading into the
+    /// canvas, like the Liquid Glass X concepts.
+    private func backdrop(_ wash: Color) -> LinearGradient {
+        LinearGradient(
+            stops: [
+                .init(color: wash, location: 0),
+                .init(color: wash.mix(with: palette.column, by: 0.5), location: 0.55),
+                .init(color: palette.canvas, location: 1),
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+
+    private var backdropHeight: CGFloat { bannerHeight + 560 }
+
     private func content(_ user: XUser) -> some View {
         let wash = tint.map { $0.mix(with: palette.column, by: colorScheme == .dark ? 0.45 : 0.7) }
         return ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
                 ProfileBanner(user: user, height: bannerHeight)
-                ProfileHeader(user: user, model: model, ringColor: wash ?? palette.column)
+                ProfileHeader(
+                    user: user, model: model,
+                    ring: wash.map { .backdrop(backdrop($0), height: backdropHeight) } ?? .solid(palette.column)
+                )
                 SegmentedPicker(selection: $model.tab, options: ProfileModel.Tab.allCases.map { ($0, $0.title) })
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
@@ -135,22 +154,13 @@ struct ProfileView: View {
                 }
             }
             .background(alignment: .top) {
-                // The banner's colour leaks down behind the header and fades
-                // into the canvas, like the Liquid Glass X concepts.
                 if let wash {
-                    LinearGradient(
-                        stops: [
-                            .init(color: wash, location: 0),
-                            .init(color: wash.mix(with: palette.column, by: 0.5), location: 0.55),
-                            .init(color: palette.canvas, location: 1),
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: bannerHeight + 560)
-                    .transition(.opacity)
+                    backdrop(wash)
+                        .frame(height: backdropHeight)
+                        .transition(.opacity)
                 }
             }
+            .coordinateSpace(.named(ProfileRing.space))
             .readableWidth()
         }
         .animation(.easeOut(duration: 0.35), value: tint)
@@ -244,26 +254,50 @@ private struct ProfileBanner: View {
     }
 }
 
+/// Fill of the ring around the profile picture.
+enum ProfileRing {
+    case solid(Color)
+    /// The header backdrop, lined up with the backdrop behind the ring so the
+    /// ring reads as a cut-out of the banner rather than a coloured border.
+    case backdrop(LinearGradient, height: CGFloat)
+
+    /// Coordinate space of the profile content, where the backdrop starts.
+    static let space = "profile-content"
+    static let width: CGFloat = 5
+}
+
 private struct ProfileHeader: View {
     let user: XUser
     let model: ProfileModel
-    var ringColor: Color = Theme.canvas
+    var ring: ProfileRing = .solid(Theme.canvas)
+    @State private var ringFrame: CGRect = .zero
 
     @Environment(Session.self) private var session
     @Environment(\.openURL) private var openURL
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     private var isMe: Bool { user.id == session.me.id }
+
+    private var ringFill: AnyShapeStyle {
+        switch ring {
+        case .solid(let color):
+            AnyShapeStyle(color)
+        case .backdrop(let gradient, let height):
+            // Map the gradient's full extent into the ring's local space.
+            AnyShapeStyle(gradient.in(CGRect(x: -ringFrame.minX, y: -ringFrame.minY, width: max(ringFrame.maxX, 1), height: height)))
+        }
+    }
     private var avatarSize: CGFloat { sizeClass == .compact ? 88 : 128 }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .bottom) {
                 Avatar(user: user, size: avatarSize)
-                    .padding(4)
-                    .background(ringColor, in: user.verification == .business
-                        ? AnyShape(RoundedRectangle(cornerRadius: avatarSize * 0.24, style: .continuous))
+                    .padding(ProfileRing.width)
+                    .background(ringFill, in: user.verification == .business
+                        ? AnyShape(RoundedRectangle(cornerRadius: avatarSize * 0.24 + ProfileRing.width, style: .continuous))
                         : AnyShape(Circle()))
+                    .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(ProfileRing.space)) } action: { ringFrame = $0 }
                     .offset(y: -avatarSize / 2)
                     .padding(.bottom, -avatarSize / 2)
                 Spacer()

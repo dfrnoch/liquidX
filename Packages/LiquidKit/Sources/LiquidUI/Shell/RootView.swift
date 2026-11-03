@@ -43,13 +43,11 @@ private struct SessionView: View {
                 }
             }
             .overlay {
-                if let context = session.quickComposer {
-                    FloatingComposer(context: context)
-                        .environment(session)
-                        .environment(session.currentRouter)
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
-                        .zIndex(5)
-                }
+                // Always present so the dimming and the card animate separately.
+                FloatingComposer(context: session.quickComposer)
+                    .environment(session)
+                    .environment(session.currentRouter)
+                    .zIndex(5)
             }
             .overlay {
                 if let viewer = session.mediaViewer {

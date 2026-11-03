@@ -167,32 +167,50 @@ enum PostLength {
 
 /// The floating new-post (or reply) card over the whole app: dims the
 /// content behind, rises with the keyboard, closes on tap outside when empty.
+/// The dimming fades in place while only the card moves.
 struct FloatingComposer: View {
-    let context: QuickComposeContext
+    let context: QuickComposeContext?
 
     @Environment(Session.self) private var session
 
     var body: some View {
         // iPhone: docked above the keyboard. Mac: a centred panel, clear of the rail.
         ZStack(alignment: placement) {
-            Color.black.opacity(dimming)
-                .ignoresSafeArea()
-                .onTapGesture { close() }
-            QuickComposer(mode: context.replyingTo.map { .reply($0) } ?? .post, isFloating: true, onDismiss: close) { _ in
-                close()
+            if context != nil {
+                Color.black.opacity(dimming)
+                    .ignoresSafeArea()
+                    .onTapGesture { close() }
+                    .transition(.opacity)
             }
-            #if os(macOS)
-            .frame(maxWidth: 600)
-            .padding(.bottom, 140)
-            // Centre over the content, not the whole window (clear of the rail).
-            .padding(.leading, 104)
-            .padding(.trailing, 16)
-            #else
-            .readableWidth()
-            .padding(.horizontal, 12)
-            .padding(.bottom, 10)
-            #endif
+            if let context {
+                QuickComposer(mode: context.replyingTo.map { .reply($0) } ?? .post, isFloating: true, onDismiss: close) { _ in
+                    close()
+                }
+                #if os(macOS)
+                .frame(maxWidth: 600)
+                .padding(.bottom, 140)
+                // Centre over the content, not the whole window (clear of the rail).
+                .padding(.leading, 104)
+                .padding(.trailing, 16)
+                #else
+                .readableWidth()
+                .padding(.horizontal, 12)
+                .padding(.bottom, 10)
+                #endif
+                .id(context.id)
+                .transition(cardTransition)
+            }
         }
+    }
+
+    /// The Mac panel grows out of the centre; the iPhone card rises a little
+    /// with the keyboard instead of travelling up from off screen.
+    private var cardTransition: AnyTransition {
+        #if os(macOS)
+        .scale(scale: 0.94).combined(with: .opacity)
+        #else
+        .offset(y: 24).combined(with: .opacity)
+        #endif
     }
 
     /// Stronger on the Mac, where the panel floats over bright media.
