@@ -80,6 +80,37 @@ public struct HomeFilter: Hashable, Sendable, Codable {
     }
 }
 
+/// Search result tabs, named after x.com's `SearchTimeline` products.
+public enum SearchKind: String, Hashable, Sendable, CaseIterable {
+    case top = "Top"
+    case latest = "Latest"
+    case people = "People"
+    case media = "Media"
+}
+
+public struct UserPage: Hashable, Sendable {
+    public var users: [XUser]
+    public var nextCursor: String?
+
+    public init(users: [XUser], nextCursor: String?) {
+        self.users = users
+        self.nextCursor = nextCursor
+    }
+}
+
+/// Typeahead results while typing a search.
+public struct SearchSuggestions: Hashable, Sendable {
+    public var users: [XUser]
+    public var topics: [String]
+
+    public init(users: [XUser] = [], topics: [String] = []) {
+        self.users = users
+        self.topics = topics
+    }
+
+    public var isEmpty: Bool { users.isEmpty && topics.isEmpty }
+}
+
 /// How LiquidX talks to X.
 public enum ConnectionKind: String, Sendable {
     case officialAPI
@@ -101,7 +132,11 @@ public protocol XService: Sendable {
     func posts(of userID: String, _ page: PageRequest, includeReplies: Bool) async throws -> TimelinePage
     func mentions(_ page: PageRequest) async throws -> TimelinePage
     func bookmarks(_ page: PageRequest) async throws -> TimelinePage
-    func search(_ query: String, _ page: PageRequest) async throws -> TimelinePage
+    /// Search result tabs this connection supports, in display order.
+    var searchKinds: [SearchKind] { get }
+    func search(_ query: String, kind: SearchKind, _ page: PageRequest) async throws -> TimelinePage
+    func searchUsers(_ query: String, _ page: PageRequest) async throws -> UserPage
+    func searchSuggestions(_ query: String) async throws -> SearchSuggestions
     func replies(to post: XPost) async throws -> [XTimelineItem]
     func post(id: String) async throws -> XPost
     func user(username: String) async throws -> XUser
@@ -119,4 +154,17 @@ public protocol XService: Sendable {
 extension XService {
     public var connection: ConnectionKind { isDemo ? .demo : .officialAPI }
     public var homeFeeds: [HomeFeed] { [.following] }
+    public var searchKinds: [SearchKind] { [.latest] }
+
+    public func search(_ query: String, _ page: PageRequest) async throws -> TimelinePage {
+        try await search(query, kind: .latest, page)
+    }
+
+    public func searchUsers(_ query: String, _ page: PageRequest) async throws -> UserPage {
+        UserPage(users: [], nextCursor: nil)
+    }
+
+    public func searchSuggestions(_ query: String) async throws -> SearchSuggestions {
+        SearchSuggestions()
+    }
 }

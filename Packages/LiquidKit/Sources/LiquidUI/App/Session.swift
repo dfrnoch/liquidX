@@ -28,6 +28,8 @@ final class Session {
     var searchText = ""
     /// Bumped when a search is submitted from outside the Search screen.
     private(set) var searchSubmissions = 0
+    /// Most recent first; kept on this device only.
+    private(set) var recentSearches: [String] = UserDefaults.standard.stringArray(forKey: "LiquidX.recentSearches") ?? []
     var trends: [XTrend] = []
     /// Bumped when the current section is selected again at its root.
     private(set) var scrollToTopTicks: [AppSection: Int] = [:]
@@ -118,6 +120,18 @@ final class Session {
         select(.search)
     }
 
+    func rememberSearch(_ query: String) {
+        recentSearches.removeAll { $0.caseInsensitiveCompare(query) == .orderedSame }
+        recentSearches.insert(query, at: 0)
+        recentSearches = Array(recentSearches.prefix(8))
+        UserDefaults.standard.set(recentSearches, forKey: "LiquidX.recentSearches")
+    }
+
+    func clearRecentSearches() {
+        recentSearches = []
+        UserDefaults.standard.removeObject(forKey: "LiquidX.recentSearches")
+    }
+
     func reloadTrends() async {
         await loadTrends()
     }
@@ -128,8 +142,8 @@ final class Session {
 
     // MARK: - Actions
 
-    func compose(replyingTo post: XPost? = nil, quoting: XPost? = nil) {
-        composer = ComposerContext(replyingTo: post, quoting: quoting)
+    func compose(replyingTo post: XPost? = nil, quoting: XPost? = nil, draft: String = "") {
+        composer = ComposerContext(replyingTo: post, quoting: quoting, initialText: draft)
     }
 
     func didPost(_ post: XPost, replyingTo: XPost?) {
@@ -169,6 +183,8 @@ struct ComposerContext: Identifiable {
     let id = UUID()
     var replyingTo: XPost?
     var quoting: XPost?
+    /// Draft carried over from the inline reply bar.
+    var initialText = ""
 }
 
 struct MediaViewerContext: Identifiable {

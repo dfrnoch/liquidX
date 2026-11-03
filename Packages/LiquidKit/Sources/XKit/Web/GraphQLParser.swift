@@ -82,6 +82,40 @@ enum GraphQLParser {
         return (items, cursor)
     }
 
+    /// People search: `TimelineUser` entries.
+    static func users(_ root: JSONObject) -> (users: [XUser], bottomCursor: String?) {
+        var users: [XUser] = []
+        var cursor: String?
+        for instruction in instructions(in: root) {
+            for entry in instruction.objects("entries") {
+                let content = entry.object("content") ?? [:]
+                if content.string("cursorType") == "Bottom" {
+                    cursor = content.string("value")
+                } else if let result = content.object("itemContent.user_results.result"), let user = user(result) {
+                    users.append(user)
+                }
+            }
+        }
+        return (users, cursor)
+    }
+
+    /// `1.1/search/typeahead.json`: suggested accounts and topics.
+    static func suggestions(_ root: JSONObject) -> SearchSuggestions {
+        let users = root.objects("users").compactMap { raw -> XUser? in
+            guard let id = raw.string("id_str"), let username = raw.string("screen_name") else { return nil }
+            return XUser(
+                id: id,
+                name: RichText.decodeEntities(raw.string("name") ?? username),
+                username: username,
+                avatarURL: raw.string("profile_image_url_https").flatMap { URL(string: $0.replacingOccurrences(of: "_normal.", with: "_200x200.")) },
+                verification: (raw.bool("verified") ?? false) || (raw.bool("ext_is_blue_verified") ?? false) ? .blue : .none,
+                isProtected: raw.bool("is_protected") ?? false
+            )
+        }
+        let topics = root.objects("topics").compactMap { $0.string("topic") }
+        return SearchSuggestions(users: Array(users.prefix(6)), topics: Array(topics.prefix(5)))
+    }
+
     private static func item(fromItemContent content: JSONObject) -> XTimelineItem? {
         guard content.object("promotedMetadata") == nil, let result = content.object("tweet_results.result") else { return nil }
         return item(fromTweet: result)

@@ -74,7 +74,26 @@ public actor DemoService: XService {
         return paginate(home.filter { bookmarked.contains($0.post.id) }, page)
     }
 
-    public func search(_ query: String, _ page: PageRequest) async throws -> TimelinePage {
+    public nonisolated var searchKinds: [SearchKind] { SearchKind.allCases }
+
+    public func searchUsers(_ query: String, _ page: PageRequest) async throws -> UserPage {
+        try await pause()
+        let needle = query.trimmingCharacters(in: CharacterSet(charactersIn: "@ ")).lowercased()
+        let users = ([DemoData.me] + DemoData.people).filter {
+            $0.name.lowercased().contains(needle) || $0.username.lowercased().contains(needle) || String($0.bio.characters).lowercased().contains(needle)
+        }
+        return UserPage(users: users, nextCursor: nil)
+    }
+
+    public func searchSuggestions(_ query: String) async throws -> SearchSuggestions {
+        let needle = query.trimmingCharacters(in: CharacterSet(charactersIn: "@# ")).lowercased()
+        guard !needle.isEmpty else { return SearchSuggestions() }
+        let users = DemoData.people.filter { $0.name.lowercased().hasPrefix(needle) || $0.username.lowercased().hasPrefix(needle) }
+        let topics = DemoData.trends.map(\.name).filter { $0.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: "#")).hasPrefix(needle) }
+        return SearchSuggestions(users: Array(users.prefix(4)), topics: topics)
+    }
+
+    public func search(_ query: String, kind: SearchKind, _ page: PageRequest) async throws -> TimelinePage {
         try await pause()
         let needle = query.trimmingCharacters(in: .whitespaces).lowercased()
         let items = home.filter { item in
@@ -82,9 +101,10 @@ public actor DemoService: XService {
                 item.post.plainText.lowercased().contains(needle)
                     || item.post.author.name.lowercased().contains(needle)
                     || item.post.author.username.lowercased().contains(needle.trimmingCharacters(in: CharacterSet(charactersIn: "@")))
-            )
+            ) && (kind != .media || !item.post.media.isEmpty)
         }
-        return paginate(items, page)
+        let ordered = kind == .top ? items.sorted { $0.post.metrics.likes > $1.post.metrics.likes } : items
+        return paginate(ordered, page)
     }
 
     public func replies(to post: XPost) async throws -> [XTimelineItem] {

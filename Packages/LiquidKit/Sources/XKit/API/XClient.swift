@@ -93,8 +93,15 @@ public actor XClient: XService {
         return try await timeline("users/\(id)/bookmarks", query: query, page: page)
     }
 
-    public func search(_ query: String, _ page: PageRequest) async throws -> TimelinePage {
-        var items = [URLQueryItem(name: "query", value: query), URLQueryItem(name: "sort_order", value: "recency")]
+    public nonisolated var searchKinds: [SearchKind] { [.top, .latest, .media] }
+
+    public func search(_ query: String, kind: SearchKind, _ page: PageRequest) async throws -> TimelinePage {
+        // v2 recent search: Top = relevancy, Media = posts with media.
+        let text = kind == .media ? "\(query) has:media" : query
+        var items = [
+            URLQueryItem(name: "query", value: text),
+            URLQueryItem(name: "sort_order", value: kind == .top ? "relevancy" : "recency"),
+        ]
         // Search pages with `next_token`, not `pagination_token`.
         items += pageQuery(page).map { $0.name == "pagination_token" ? URLQueryItem(name: "next_token", value: $0.value) : $0 }
         return try await timeline("tweets/search/recent", query: items, page: page)

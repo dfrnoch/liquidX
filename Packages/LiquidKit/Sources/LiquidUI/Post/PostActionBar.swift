@@ -6,6 +6,7 @@ struct PostActionBar: View {
     var showsViews = true
 
     @Environment(Session.self) private var session
+    @Environment(\.postStyle) private var style
 
     var body: some View {
         let state = session.engagement.state(for: post)
@@ -62,7 +63,7 @@ struct PostActionBar: View {
                 .accessibilityLabel("Share")
             }
         }
-        .font(.postActions)
+        .font(style.actions)
         .imageScale(.medium)
     }
 }

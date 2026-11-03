@@ -126,7 +126,7 @@ struct ProfileView: View {
 
                 if let feed = model.currentFeed {
                     if model.tab == .media {
-                        MediaTab(store: feed)
+                        MediaGridTiles(store: feed)
                     } else {
                         FeedRows(store: feed, emptyTitle: "No posts yet", emptyMessage: "When \(user.handle) posts, they'll show up here.")
                             .task(id: model.tab) { await feed.loadIfNeeded() }
@@ -476,7 +476,7 @@ struct SettingsLinkButton: View {
 }
 
 /// Grid of every photo and video from the account's recent posts.
-private struct MediaTab: View {
+struct MediaGridTiles: View {
     let store: FeedStore
 
     @Environment(Session.self) private var session

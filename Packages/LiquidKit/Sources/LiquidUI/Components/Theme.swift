@@ -107,54 +107,57 @@ struct NeutralGlassButtonStyle: ButtonStyle {
 }
 #endif
 
-/// Post typography. Names match the post text size (as on X); the Mac uses
-/// slightly larger fixed sizes because its body text style is only 13 pt.
-extension Font {
-    static var postName: Font {
+/// Reading size chosen in Settings → Display (X offers the same five steps).
+enum PostTextSize: Int, CaseIterable, Identifiable {
+    case extraSmall, small, medium, large, extraLarge
+
+    var id: Self { self }
+
+    var offset: CGFloat {
+        switch self {
+        case .extraSmall: -2
+        case .small: -1
+        case .medium: 0
+        case .large: 2
+        case .extraLarge: 4
+        }
+    }
+}
+
+/// How posts are drawn: text size and whether avatars get their own column.
+/// Names use the same size as the post text, as on X.
+struct PostStyle: Equatable {
+    var textSize: PostTextSize = .medium
+    /// When false, the avatar sits inline with the name and the text spans
+    /// the full width (no empty gutter on the left).
+    var showsAvatarColumn = true
+
+    private var base: CGFloat {
         #if os(macOS)
-        .system(size: 15, weight: .bold)
+        15 + textSize.offset
         #else
-        .body.weight(.bold)
+        16 + textSize.offset
         #endif
     }
 
-    static var postMeta: Font {
-        #if os(macOS)
-        .system(size: 14)
+    private func font(_ delta: CGFloat, _ weight: Font.Weight = .regular) -> Font {
+        #if os(iOS)
+        // Still honour the system Dynamic Type setting on iOS.
+        .system(size: UIFontMetrics(forTextStyle: .body).scaledValue(for: base + delta), weight: weight)
         #else
-        .subheadline
+        .system(size: base + delta, weight: weight)
         #endif
     }
 
-    static var postBody: Font {
-        #if os(macOS)
-        .system(size: 15)
-        #else
-        .body
-        #endif
-    }
+    var name: Font { font(0, .bold) }
+    var body: Font { font(0) }
+    var meta: Font { font(-1) }
+    var label: Font { font(-1, .semibold) }
+    var actions: Font { font(-2) }
+    var detailName: Font { font(1, .bold) }
+    var detailBody: Font { font(4) }
+}
 
-    static var postActions: Font {
-        #if os(macOS)
-        .system(size: 13)
-        #else
-        .footnote
-        #endif
-    }
-
-    static var postDetailName: Font {
-        #if os(macOS)
-        .system(size: 17, weight: .bold)
-        #else
-        .headline
-        #endif
-    }
-
-    static var postDetailBody: Font {
-        #if os(macOS)
-        .system(size: 19)
-        #else
-        .title3
-        #endif
-    }
+extension EnvironmentValues {
+    @Entry var postStyle = PostStyle()
 }

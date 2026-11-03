@@ -58,7 +58,7 @@ final class VisualTourUITests: XCTestCase {
         let text = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '@priyacodes'")).firstMatch
         XCTAssertTrue(text.waitForExistence(timeout: 10))
         text.tap()
-        XCTAssertTrue(app.buttons["Post your reply"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["Post"].waitForExistence(timeout: 5))
         let like = app.buttons["Like"].firstMatch
         XCTAssertTrue(like.waitForExistence(timeout: 5))
         like.tap()
@@ -92,7 +92,7 @@ final class VisualTourUITests: XCTestCase {
     @MainActor
     func testDeepLinkedPost() {
         let app = launch(["-LiquidXOpenPost", "2008"])
-        XCTAssertTrue(app.buttons["Post your reply"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Post"].waitForExistence(timeout: 10))
         sleep(1)
         snapshot(app, "deep-linked-post")
     }

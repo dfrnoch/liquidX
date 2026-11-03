@@ -97,16 +97,40 @@ public actor WebClient: XService {
         return try await timeline("Bookmarks", variables: variables, page: page)
     }
 
-    public func search(_ query: String, _ page: PageRequest) async throws -> TimelinePage {
+    public nonisolated var searchKinds: [SearchKind] { [.top, .latest, .people, .media] }
+
+    public func search(_ query: String, kind: SearchKind, _ page: PageRequest) async throws -> TimelinePage {
+        try await timeline("SearchTimeline", variables: searchVariables(query, kind: kind, page: page), page: page)
+    }
+
+    public func searchUsers(_ query: String, _ page: PageRequest) async throws -> UserPage {
+        let data = try await graphQL("SearchTimeline", variables: searchVariables(query, kind: .people, page: page))
+        let (users, cursor) = GraphQLParser.users(data)
+        return UserPage(users: users, nextCursor: users.isEmpty ? nil : cursor)
+    }
+
+    public func searchSuggestions(_ query: String) async throws -> SearchSuggestions {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return SearchSuggestions() }
+        var components = URLComponents()
+        components.queryItems = [
+            URLQueryItem(name: "q", value: trimmed),
+            URLQueryItem(name: "src", value: "search_box"),
+            URLQueryItem(name: "result_type", value: "events,users,topics"),
+        ]
+        let data = try await rest("GET", "1.1/search/typeahead.json?\(components.percentEncodedQuery ?? "")")
+        return GraphQLParser.suggestions(data)
+    }
+
+    private func searchVariables(_ query: String, kind: SearchKind, page: PageRequest) -> JSONObject {
         var variables: JSONObject = [
             "rawQuery": query,
             "count": Self.pageSize,
             "querySource": "typed_query",
-            "product": "Latest",
-            "withGrokTranslatedBio": false,
+            "product": kind.rawValue,
         ]
         if case .older(let cursor) = page { variables["cursor"] = cursor }
-        return try await timeline("SearchTimeline", variables: variables, page: page)
+        return variables
     }
 
     public func replies(to post: XPost) async throws -> [XTimelineItem] {

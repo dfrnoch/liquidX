@@ -49,6 +49,29 @@ public struct SettingsView: View {
             }
 
             Section {
+                DisplayPreview()
+                    .environment(\.postStyle, model.postStyle)
+                HStack(spacing: 12) {
+                    Text("A").font(.system(size: 13))
+                    Slider(
+                        value: Binding(
+                            get: { Double(model.textSize.rawValue) },
+                            set: { model.textSize = PostTextSize(rawValue: Int($0.rounded())) ?? .medium }
+                        ),
+                        in: 0...Double(PostTextSize.allCases.count - 1),
+                        step: 1
+                    )
+                    .accessibilityLabel("Text size")
+                    Text("A").font(.system(size: 21))
+                }
+                Toggle("Avatar column", isOn: $model.showsAvatarColumn)
+            } header: {
+                Text("Display")
+            } footer: {
+                Text("Turn off the avatar column to let post text use the full width, with the avatar next to the name.")
+            }
+
+            Section {
                 LabeledContent("Client ID") {
                     Text(model.effectiveClientID.isEmpty ? "Not set" : masked(model.effectiveClientID))
                         .font(.body.monospaced())
@@ -89,5 +112,36 @@ public struct SettingsView: View {
     private func masked(_ id: String) -> String {
         guard id.count > 8 else { return id }
         return String(id.prefix(4)) + "…" + String(id.suffix(4))
+    }
+}
+
+/// A fictional sample post that reflects the display settings live.
+private struct DisplayPreview: View {
+    @Environment(\.postStyle) private var style
+
+    var body: some View {
+        let author = XUser(id: "0", name: "LiquidX", username: "liquidx", verification: .blue)
+        let avatarColumn = style.showsAvatarColumn
+        let header = HStack(spacing: 4) {
+            Text(author.name).font(style.name)
+            VerifiedBadge(verification: author.verification)
+            Text("@liquidx · 2m").font(style.meta).foregroundStyle(.secondary)
+        }
+        let text = Text("This is how posts will look. Pick a size that's comfortable to read.").font(style.body)
+        Group {
+            if avatarColumn {
+                HStack(alignment: .top, spacing: 12) {
+                    Avatar(user: author, size: 40)
+                    VStack(alignment: .leading, spacing: 4) { header; text }
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 10) { Avatar(user: author, size: 30); header }
+                    text
+                }
+            }
+        }
+        .padding(.vertical, 6)
+        .animation(.snappy, value: style)
     }
 }

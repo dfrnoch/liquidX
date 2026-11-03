@@ -8,6 +8,7 @@ struct PostDetailView: View {
 
     @Environment(Session.self) private var session
     @Environment(Router.self) private var router
+    @Environment(\.postStyle) private var style
     @State private var replies: [XTimelineItem] = []
     @State private var phase: Phase = .loading
 
@@ -43,10 +44,10 @@ struct PostDetailView: View {
                 .buttonStyle(.plain)
                 VStack(alignment: .leading, spacing: 1) {
                     HStack(spacing: 4) {
-                        Text(post.author.name).font(.postDetailName)
+                        Text(post.author.name).font(style.detailName)
                         VerifiedBadge(verification: post.author.verification, size: 16)
                     }
-                    Text(post.author.handle).font(.postMeta).foregroundStyle(.secondary)
+                    Text(post.author.handle).font(style.meta).foregroundStyle(.secondary)
                 }
                 Spacer()
                 Menu {
@@ -60,7 +61,7 @@ struct PostDetailView: View {
                 .menuIndicator(.hidden)
                 .fixedSize()
             }
-            PostBody(post: post, textStyle: .postDetailBody)
+            PostBody(post: post, isFocused: true)
             Text(post.createdAt.formatted(date: .abbreviated, time: .shortened))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -120,23 +121,14 @@ struct PostDetailView: View {
     }
 
     private var replyBar: some View {
-        Button { session.compose(replyingTo: post) } label: {
-            HStack(spacing: 10) {
-                Avatar(user: session.me, size: 28)
-                Text("Post your reply")
-                    .foregroundStyle(.secondary)
-                Spacer()
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .contentShape(Capsule())
+        InlineReplyComposer(post: post) { reply in
+            withAnimation(.snappy) { replies.append(XTimelineItem(reply)) }
         }
-        .buttonStyle(.plain)
-        .glassEffect(.regular.interactive(), in: .capsule)
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 12)
         .padding(.bottom, 8)
         .readableWidth()
     }
+
 
     private func loadReplies() async {
         do {
@@ -145,6 +137,106 @@ struct PostDetailView: View {
         } catch is CancellationError {
         } catch {
             phase = replies.isEmpty ? .failed(error.localizedDescription) : .loaded
+        }
+    }
+}
+
+/// X's inline reply box: a slim glass bar that grows into a small composer
+/// (who you're replying to, the text, expand and send) while you type.
+private struct InlineReplyComposer: View {
+    let post: XPost
+    let onSent: (XPost) -> Void
+
+    @Environment(Session.self) private var session
+    @State private var text = ""
+    @State private var isSending = false
+    @FocusState private var isFocused: Bool
+
+    private var isExpanded: Bool { isFocused || !text.isEmpty }
+    private var canSend: Bool { !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isSending }
+
+    /// "@author and @other", like X's "Replying to" line.
+    private var recipients: String {
+        var names = [post.author.username]
+        for name in post.replyingTo where !names.contains(name) { names.append(name) }
+        let handles = names.prefix(3).map { "@\($0)" }
+        return handles.count > 1 ? handles.dropLast().joined(separator: ", ") + " and " + handles.last! : handles[0]
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if isExpanded {
+                Text("Replying to \(Text(recipients).foregroundStyle(Theme.accent))")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+            }
+            HStack(alignment: .center, spacing: 10) {
+                Avatar(user: session.me, size: isExpanded ? 34 : 28)
+                TextField("Post your reply", text: $text, axis: .vertical)
+                    .textFieldStyle(.plain)
+                    .lineLimit(1...6)
+                    .focused($isFocused)
+                    .onSubmit { if canSend { Task { await send() } } }
+            }
+            if isExpanded {
+                HStack(spacing: 14) {
+                    Spacer()
+                    Button {
+                        session.compose(replyingTo: post, draft: text)
+                        text = ""
+                        isFocused = false
+                    } label: {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                            .font(.body.weight(.semibold))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                    .hoverPointer()
+                    .accessibilityLabel("Open full composer")
+
+                    Button {
+                        Task { await send() }
+                    } label: {
+                        Group {
+                            if isSending {
+                                ProgressView().controlSize(.small).tint(.white)
+                            } else {
+                                Image(systemName: "arrow.up").font(.body.weight(.bold))
+                            }
+                        }
+                        .foregroundStyle(.white)
+                        .frame(width: 36, height: 36)
+                    }
+                    .buttonStyle(.plain)
+                    .glassEffect(.regular.tint(Theme.accent.opacity(canSend ? 1 : 0.4)).interactive(), in: .circle)
+                    .disabled(!canSend)
+                    .hoverPointer()
+                    .keyboardShortcut(.return, modifiers: .command)
+                    .accessibilityLabel("Reply")
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, isExpanded ? 14 : 9)
+        .glassEffect(.regular.interactive(), in: .rect(cornerRadius: isExpanded ? 26 : 24))
+        .animation(.snappy(duration: 0.3), value: isExpanded)
+    }
+
+    private func send() async {
+        let body = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !body.isEmpty else { return }
+        isSending = true
+        defer { isSending = false }
+        do {
+            let reply = try await session.service.createPost(text: body, replyingTo: post.id)
+            text = ""
+            isFocused = false
+            session.didPost(reply, replyingTo: post)
+            onSent(reply)
+        } catch {
+            session.report(error)
         }
     }
 }

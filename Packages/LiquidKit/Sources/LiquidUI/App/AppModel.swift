@@ -27,6 +27,18 @@ public final class AppModel {
         didSet { UserDefaults.standard.set(appearance.rawValue, forKey: Self.appearanceKey) }
     }
 
+    var textSize: PostTextSize {
+        didSet { UserDefaults.standard.set(textSize.rawValue, forKey: "LiquidX.textSize") }
+    }
+
+    var showsAvatarColumn: Bool {
+        didSet { UserDefaults.standard.set(showsAvatarColumn, forKey: "LiquidX.avatarColumn") }
+    }
+
+    var postStyle: PostStyle {
+        PostStyle(textSize: textSize, showsAvatarColumn: showsAvatarColumn)
+    }
+
     let bundledClientID: String
     private let credentials: any CredentialStore
     private let webCredentials: any WebCredentialStore
@@ -45,6 +57,11 @@ public final class AppModel {
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         clientID = defaults.string(forKey: Self.clientIDKey) ?? ""
         appearance = defaults.string(forKey: Self.appearanceKey).flatMap(Appearance.init(rawValue:)) ?? .system
+        // integer(forKey:)/bool(forKey:) also accept string values (launch arguments).
+        textSize = defaults.object(forKey: "LiquidX.textSize") == nil
+            ? .medium
+            : PostTextSize(rawValue: defaults.integer(forKey: "LiquidX.textSize")) ?? .medium
+        showsAvatarColumn = defaults.object(forKey: "LiquidX.avatarColumn") == nil || defaults.bool(forKey: "LiquidX.avatarColumn")
         launchDemo = defaults.bool(forKey: "LiquidXDemo")
         let uiTesting = defaults.bool(forKey: "LiquidXUITesting")
         if uiTesting {
@@ -203,6 +220,9 @@ public final class AppModel {
         }
         if let id = UserDefaults.standard.string(forKey: "LiquidXOpenPost") {
             session.router(for: session.section).push(.postID(id))
+        }
+        if let query = UserDefaults.standard.string(forKey: "LiquidXSearch") {
+            session.submitSearch(query)
         }
         if UserDefaults.standard.bool(forKey: "LiquidXUITesting") {
             session.autoRefreshInterval = 0

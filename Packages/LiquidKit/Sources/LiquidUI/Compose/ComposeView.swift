@@ -83,7 +83,10 @@ struct ComposeView: View {
                 }
             }
         }
-        .onAppear { isFocused = true }
+        .onAppear {
+            if text.isEmpty { text = context.initialText }
+            isFocused = true
+        }
         #if os(macOS)
         .frame(minWidth: 520, minHeight: 320)
         #endif

@@ -8,10 +8,11 @@ struct PostRow: View {
 
     @Environment(Session.self) private var session
     @Environment(Router.self) private var router
+    @Environment(\.postStyle) private var style
     @State private var isHovering = false
 
     private var post: XPost { item.post }
-    private let avatarSize: CGFloat = 44
+    private var avatarSize: CGFloat { style.showsAvatarColumn ? 44 : 34 }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -21,24 +22,30 @@ struct PostRow: View {
                 } icon: {
                     Image(systemName: "arrow.2.squarepath")
                 }
-                .font(.footnote.weight(.semibold))
+                .font(style.label)
                 .foregroundStyle(.secondary)
-                .labelStyle(RepostLabelStyle(indent: avatarSize))
+                .labelStyle(RepostLabelStyle(indent: style.showsAvatarColumn ? avatarSize : nil))
                 .onTapGesture { router.push(.profile(reposter)) }
+                .hoverPointer()
             }
 
-            HStack(alignment: .top, spacing: 12) {
-                Button { router.push(.profile(post.author)) } label: {
-                    Avatar(user: post.author, size: avatarSize)
+            if style.showsAvatarColumn {
+                HStack(alignment: .top, spacing: 12) {
+                    avatar
+                    VStack(alignment: .leading, spacing: 6) {
+                        PostHeader(post: post)
+                        content
+                    }
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text("\(post.author.name), profile"))
-
-                VStack(alignment: .leading, spacing: 6) {
-                    PostHeader(post: post)
-                    PostBody(post: post)
-                    PostActionBar(post: post)
-                        .padding(.top, 2)
+            } else {
+                // No gutter: the avatar sits beside the name and everything
+                // below uses the full width.
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .center, spacing: 10) {
+                        avatar
+                        PostHeader(post: post)
+                    }
+                    content
                 }
             }
         }
@@ -56,13 +63,30 @@ struct PostRow: View {
         .contextMenu { PostMenuItems(post: post) }
         .accessibilityElement(children: .contain)
     }
+
+    private var avatar: some View {
+        Button { router.push(.profile(post.author)) } label: {
+            Avatar(user: post.author, size: avatarSize)
+        }
+        .buttonStyle(.plain)
+        .hoverPointer()
+        .accessibilityLabel(Text("\(post.author.name), profile"))
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        PostBody(post: post)
+        PostActionBar(post: post)
+            .padding(.top, 2)
+    }
 }
 
 private struct RepostLabelStyle: LabelStyle {
-    let indent: CGFloat
+    /// Width of the avatar column to align the icon under, or nil for none.
+    let indent: CGFloat?
 
     func makeBody(configuration: Configuration) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: indent == nil ? 6 : 12) {
             configuration.icon
                 .frame(width: indent, alignment: .trailing)
             configuration.title
@@ -77,6 +101,7 @@ struct PostHeader: View {
     var showsMenu = true
 
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @Environment(\.postStyle) private var style
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 4) {
@@ -95,15 +120,17 @@ struct PostHeader: View {
                     PostMenuItems(post: post)
                 } label: {
                     Image(systemName: "ellipsis")
-                        .font(.subheadline)
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(.secondary)
-                        .frame(width: 28, height: 20)
-                        .contentShape(Rectangle())
+                        .frame(width: 30, height: 30)
+                        .contentShape(Circle())
+                        .glassEffect(.regular.interactive(), in: .circle)
                 }
                 .menuStyle(.button)
                 .buttonStyle(.plain)
                 .menuIndicator(.hidden)
                 .fixedSize()
+                .hoverPointer()
                 .accessibilityLabel("More")
             }
         }
@@ -112,7 +139,7 @@ struct PostHeader: View {
     private var name: some View {
         HStack(spacing: 4) {
             Text(post.author.name)
-                .font(.postName)
+                .font(style.name)
                 .lineLimit(1)
             VerifiedBadge(verification: post.author.verification)
             if post.author.isProtected {
@@ -124,7 +151,7 @@ struct PostHeader: View {
 
     private var meta: some View {
         Text("\(post.author.handle) · \(Formatting.relative(post.createdAt))")
-            .font(.postMeta)
+            .font(style.meta)
             .foregroundStyle(.secondary)
             .lineLimit(1)
     }
@@ -133,7 +160,10 @@ struct PostHeader: View {
 /// Text, media, quote and link card.
 struct PostBody: View {
     let post: XPost
-    var textStyle: Font = .postBody
+    /// The focused post on its own page uses larger text.
+    var isFocused = false
+
+    @Environment(\.postStyle) private var style
 
     @Environment(Session.self) private var session
 
@@ -141,12 +171,12 @@ struct PostBody: View {
         VStack(alignment: .leading, spacing: 8) {
             if !post.replyingTo.isEmpty {
                 Text("Replying to \(Text(post.replyingTo.map { "@\($0)" }.joined(separator: " ")).foregroundStyle(Theme.accent))")
-                    .font(.postMeta)
+                    .font(style.meta)
                     .foregroundStyle(.secondary)
             }
             if !post.text.characters.isEmpty {
                 Text(post.text)
-                    .font(textStyle)
+                    .font(isFocused ? style.detailBody : style.body)
                     .tint(Theme.accent)
                     .fixedSize(horizontal: false, vertical: true)
                     .textSelection(.enabled)
