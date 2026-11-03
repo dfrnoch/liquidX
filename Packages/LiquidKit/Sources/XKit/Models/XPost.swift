@@ -30,6 +30,8 @@ public struct XPost: Identifiable, Hashable, Sendable, Codable {
     public var conversationID: String?
     /// Usernames this post replies to (without "@").
     public var replyingTo: [String]
+    /// The post this one replies to.
+    public var replyToID: String?
     public var quoted: XQuotedPost?
     public var card: XLinkCard?
     /// The signed-in account's own engagement, when the source reports it
@@ -45,6 +47,7 @@ public struct XPost: Identifiable, Hashable, Sendable, Codable {
         metrics: Metrics = Metrics(),
         conversationID: String? = nil,
         replyingTo: [String] = [],
+        replyToID: String? = nil,
         quoted: XQuotedPost? = nil,
         card: XLinkCard? = nil,
         viewer: ViewerState? = nil
@@ -57,6 +60,7 @@ public struct XPost: Identifiable, Hashable, Sendable, Codable {
         self.metrics = metrics
         self.conversationID = conversationID
         self.replyingTo = replyingTo
+        self.replyToID = replyToID
         self.quoted = quoted
         self.card = card
         self.viewer = viewer
@@ -130,6 +134,23 @@ public struct XTimelineItem: Identifiable, Hashable, Sendable, Codable {
 
     public init(_ post: XPost) {
         self.init(id: post.id, post: post)
+    }
+}
+
+/// Which rows of a list are joined into a thread: a reply placed right after
+/// the post it answers (as x.com sends conversations) continues it.
+public struct ThreadLinks: Sendable {
+    /// Rows followed by a reply to them.
+    public private(set) var continuesBelow: Set<String> = []
+    /// Replies right after the post they answer.
+    public private(set) var continuesAbove: Set<String> = []
+
+    public init(_ items: [XTimelineItem]) {
+        for (parent, reply) in zip(items, items.dropFirst())
+        where reply.repostedBy == nil && reply.post.replyToID == parent.post.id {
+            continuesBelow.insert(parent.id)
+            continuesAbove.insert(reply.id)
+        }
     }
 }
 

@@ -51,6 +51,7 @@ struct WebParserTests {
         let post = try load().items[2].post
         #expect(post.plainText == "This is the full long text of the reply")
         #expect(post.replyingTo == ["miraokafor"])
+        #expect(post.replyToID == "100")
         #expect(post.quoted?.author.username == "swiftweekly")
     }
 

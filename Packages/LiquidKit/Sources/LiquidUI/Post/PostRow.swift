@@ -5,6 +5,10 @@ import XKit
 /// pipeline cache, and only the engagement object for this post is observed.
 struct PostRow: View {
     let item: XTimelineItem
+    /// Thread line to the post above, which this row replies to.
+    var connectsAbove = false
+    /// Thread line to the reply below.
+    var connectsBelow = false
 
     @Environment(Session.self) private var session
     @Environment(Router.self) private var router
@@ -12,7 +16,9 @@ struct PostRow: View {
     @State private var isHovering = false
 
     private var post: XPost { item.post }
-    private var avatarSize: CGFloat { style.showsAvatarColumn ? 44 : 40 }
+    /// Thread lines need the avatar column to run down.
+    private var showsAvatarColumn: Bool { style.showsAvatarColumn || connectsAbove || connectsBelow }
+    private var avatarSize: CGFloat { showsAvatarColumn ? 44 : 40 }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -24,12 +30,12 @@ struct PostRow: View {
                 }
                 .font(style.label)
                 .foregroundStyle(.secondary)
-                .labelStyle(RepostLabelStyle(indent: style.showsAvatarColumn ? avatarSize : nil))
+                .labelStyle(RepostLabelStyle(indent: showsAvatarColumn ? avatarSize : nil))
                 .onTapGesture { router.push(.profile(reposter)) }
                 .hoverPointer()
             }
 
-            if style.showsAvatarColumn {
+            if showsAvatarColumn {
                 HStack(alignment: .top, spacing: 12) {
                     avatar
                     VStack(alignment: .leading, spacing: 6) {
@@ -37,6 +43,7 @@ struct PostRow: View {
                         content
                     }
                 }
+                .overlay(alignment: .topLeading) { threadLines }
             } else {
                 // No gutter: the avatar sits beside the name and everything
                 // below uses the full width.
@@ -50,8 +57,8 @@ struct PostRow: View {
             }
         }
         .padding(.horizontal, 16)
-        .padding(.top, 12)
-        .padding(.bottom, 8)
+        .padding(.top, Self.topPadding)
+        .padding(.bottom, Self.bottomPadding)
         .background(isHovering ? Color.primary.opacity(0.035) : .clear)
         .contentShape(Rectangle())
         .onTapGesture { router.push(.post(post)) }
@@ -59,9 +66,34 @@ struct PostRow: View {
         .onHover { hovering in withAnimation(.easeOut(duration: 0.12)) { isHovering = hovering } }
         .hoverPointer()
         #endif
-        .rowSeparator()
+        .overlay(alignment: .bottom) {
+            if !connectsBelow { Rectangle().fill(Theme.hairline).frame(height: 0.5) }
+        }
         .contextMenu { PostMenuItems(post: post) }
         .accessibilityElement(children: .contain)
+    }
+
+    private static let topPadding: CGFloat = 12
+    private static let bottomPadding: CGFloat = 8
+    private static let threadGap: CGFloat = 4
+
+    /// Lines through the avatar column, running out of the row's padding so
+    /// they meet the neighbouring rows' lines.
+    @ViewBuilder
+    private var threadLines: some View {
+        let line = Capsule().fill(Theme.threadLine).frame(width: 2)
+        let inset = avatarSize / 2 - 1
+        if connectsAbove {
+            line
+                .frame(height: Self.topPadding - Self.threadGap)
+                .offset(x: inset, y: -Self.topPadding)
+        }
+        if connectsBelow {
+            line
+                .padding(.top, avatarSize + Self.threadGap)
+                .padding(.bottom, -Self.bottomPadding)
+                .offset(x: inset)
+        }
     }
 
     private var avatar: some View {
@@ -75,7 +107,8 @@ struct PostRow: View {
 
     @ViewBuilder
     private var content: some View {
-        PostBody(post: post)
+        // The thread line already shows who this replies to.
+        PostBody(post: post, showsReplyContext: !connectsAbove)
         PostActionBar(post: post)
             .padding(.top, 2)
     }
@@ -163,6 +196,7 @@ struct PostBody: View {
     let post: XPost
     /// The focused post on its own page uses larger text.
     var isFocused = false
+    var showsReplyContext = true
 
     @Environment(\.postStyle) private var style
     @Environment(\.impliedReplyRecipients) private var impliedRecipients
@@ -171,7 +205,8 @@ struct PostBody: View {
 
     /// "Replying to" handles, minus the ones the context already makes obvious.
     private var recipients: [String] {
-        post.replyingTo.filter { !impliedRecipients.contains($0.lowercased()) }
+        guard showsReplyContext else { return [] }
+        return post.replyingTo.filter { !impliedRecipients.contains($0.lowercased()) }
     }
 
     var body: some View {

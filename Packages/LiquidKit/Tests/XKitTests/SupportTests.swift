@@ -127,3 +127,24 @@ struct DemoServiceTests {
         #expect(filtered.items.allSatisfy { $0.repostedBy == nil && $0.post.replyingTo.isEmpty })
     }
 }
+
+struct ThreadLinksTests {
+    private func item(_ id: String, replyTo: String? = nil, repostedBy: XUser? = nil) -> XTimelineItem {
+        let author = XUser(id: "u\(id)", name: "User \(id)", username: "user\(id)")
+        let post = XPost(id: id, author: author, createdAt: .distantPast, text: "", replyToID: replyTo)
+        return XTimelineItem(id: repostedBy == nil ? id : "rt-\(id)", post: post, repostedBy: repostedBy)
+    }
+
+    @Test func joinsRepliesThatFollowTheirParent() {
+        let links = ThreadLinks([item("1"), item("2", replyTo: "1"), item("3", replyTo: "2"), item("4", replyTo: "1")])
+        #expect(links.continuesBelow == ["1", "2"])
+        #expect(links.continuesAbove == ["2", "3"])
+    }
+
+    @Test func repostedRepliesStandAlone() {
+        let reposter = XUser(id: "r", name: "Reposter", username: "reposter")
+        let links = ThreadLinks([item("1"), item("2", replyTo: "1", repostedBy: reposter)])
+        #expect(links.continuesBelow.isEmpty)
+        #expect(links.continuesAbove.isEmpty)
+    }
+}

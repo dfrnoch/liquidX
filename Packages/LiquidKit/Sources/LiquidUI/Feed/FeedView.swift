@@ -33,8 +33,9 @@ struct FeedRows: View {
                 if let error = store.transientError {
                     ErrorBanner(message: error) { store.transientError = nil }
                 }
+                let links = ThreadLinks(store.items)
                 ForEach(store.items) { item in
-                    PostRow(item: item)
+                    PostRow(item: item, connectsAbove: links.continuesAbove.contains(item.id), connectsBelow: links.continuesBelow.contains(item.id))
                         .onAppear { store.loadMoreIfNeeded(after: item) }
                 }
                 FeedFooter(store: store)

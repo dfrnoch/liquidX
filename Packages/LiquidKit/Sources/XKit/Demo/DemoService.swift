@@ -160,7 +160,8 @@ public actor DemoService: XService {
             author: DemoData.me,
             createdAt: .now,
             text: RichText.make(text),
-            replyingTo: replyingTo.flatMap { id in home.first { $0.post.id == id }?.post.author.username }.map { [$0] } ?? []
+            replyingTo: replyingTo.flatMap { id in home.first { $0.post.id == id }?.post.author.username }.map { [$0] } ?? [],
+            replyToID: replyingTo
         )
         if replyingTo == nil { home.insert(XTimelineItem(post), at: 0) }
         return post

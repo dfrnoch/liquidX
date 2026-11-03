@@ -53,6 +53,7 @@ struct Assembler {
             ),
             conversationID: tweet.conversation_id,
             replyingTo: replyingTo,
+            replyToID: tweet.reference("replied_to"),
             quoted: quotedID.flatMap { tweets[$0] }.map(quote),
             card: card
         )

@@ -123,8 +123,11 @@ struct PostDetailView: View {
                     .padding(32)
                     .rowSeparator()
             } else {
-                ForEach(thread) { PostRow(item: $0) }
-                    .environment(\.impliedReplyRecipients, [post.author.username.lowercased()])
+                let links = ThreadLinks(thread)
+                ForEach(thread) { item in
+                    PostRow(item: item, connectsAbove: links.continuesAbove.contains(item.id), connectsBelow: links.continuesBelow.contains(item.id))
+                }
+                .environment(\.impliedReplyRecipients, [post.author.username.lowercased()])
             }
             if !related.isEmpty {
                 Text("Discover more")
@@ -136,7 +139,10 @@ struct PostDetailView: View {
                     .overlay(alignment: .top) { Rectangle().fill(Theme.hairline.opacity(0.6)).frame(height: 6) }
                     .rowSeparator()
                     .accessibilityAddTraits(.isHeader)
-                ForEach(related) { PostRow(item: $0) }
+                let links = ThreadLinks(related)
+                ForEach(related) { item in
+                    PostRow(item: item, connectsAbove: links.continuesAbove.contains(item.id), connectsBelow: links.continuesBelow.contains(item.id))
+                }
             }
         }
     }

@@ -172,6 +172,7 @@ enum GraphQLParser {
             ),
             conversationID: legacy.string("conversation_id_str"),
             replyingTo: isReply ? [legacy.string("in_reply_to_screen_name")].compactMap { $0 } : [],
+            replyToID: legacy.string("in_reply_to_status_id_str"),
             quoted: quoted,
             card: media.isEmpty && quoted == nil ? card(tweet.object("card.legacy"), links: links) : nil,
             viewer: ViewerState(

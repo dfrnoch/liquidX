@@ -46,6 +46,7 @@ struct AssemblerTests {
         #expect(post.plainText == "Thanks, this is the full long version of the post.")
         #expect(post.replyingTo == ["orbitlab"])
         #expect(post.conversationID == "1850000000000000001")
+        #expect(post.replyToID == "1850000000000000001")
     }
 
     @Test func avatarsUseLargeRendition() throws {

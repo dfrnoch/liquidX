@@ -11,6 +11,8 @@ enum Theme {
     /// Raised panels and cards on the canvas.
     static let panel = Color(light: Color(white: 0.965), dark: Color(white: 0.085))
     static let hairline = Color(light: Color(white: 0.88), dark: Color(white: 0.18))
+    /// Joins a post to the reply below it.
+    static let threadLine = Color(light: Color(white: 0.8), dark: Color(white: 0.27))
     static let placeholder = Color(light: Color(white: 0.92), dark: Color(white: 0.14))
 }
 

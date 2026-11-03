@@ -67,7 +67,7 @@ enum DemoData {
     private static func make(
         _ id: String, _ username: String, minutesAgo: Double, now: Date, _ text: String,
         media: [XMedia] = [], replies: Int = 0, reposts: Int = 0, likes: Int = 0, views: Int? = nil,
-        replyingTo: [String] = [], quoted: XQuotedPost? = nil, card: XLinkCard? = nil
+        replyingTo: [String] = [], replyTo: String? = nil, quoted: XQuotedPost? = nil, card: XLinkCard? = nil
     ) -> XPost {
         XPost(
             id: id,
@@ -76,8 +76,9 @@ enum DemoData {
             text: RichText.make(text),
             media: media,
             metrics: XPost.Metrics(replies: replies, reposts: reposts, likes: likes, bookmarks: likes / 12, views: views),
-            conversationID: id,
+            conversationID: replyTo ?? id,
             replyingTo: replyingTo,
+            replyToID: replyTo,
             quoted: quoted,
             card: card
         )
@@ -124,7 +125,7 @@ enum DemoData {
                 quoted: XQuotedPost(id: quoteSource.id, author: quoteSource.author, createdAt: quoteSource.createdAt, text: quoteSource.text))),
             XTimelineItem(make("2011", "priyacodes", minutesAgo: 470, now: now,
                 "@miraokafor Agree, and it scales up nicely with Dynamic Type too. Tested it at AX5 this morning.",
-                replies: 2, reposts: 1, likes: 48, views: 2_100, replyingTo: ["miraokafor"])),
+                replies: 2, reposts: 1, likes: 48, views: 2_100, replyingTo: ["miraokafor"], replyTo: "2010")),
             XTimelineItem(make("2012", "jberg", minutesAgo: 540, now: now,
                 "Three frames from the coast trip.",
                 media: [photo("coast-1", 1200, 1600), photo("coast-2", 1600, 1200), photo("coast-3", 1600, 1200)],
@@ -215,8 +216,9 @@ enum DemoData {
                 createdAt: post.createdAt.addingTimeInterval(Double(index + 1) * 420),
                 text: RichText.make(line.1),
                 metrics: XPost.Metrics(replies: index, likes: 12 - index * 3),
-                conversationID: post.id,
-                replyingTo: [post.author.username]
+                conversationID: post.conversationID ?? post.id,
+                replyingTo: [post.author.username],
+                replyToID: post.id
             ))
         }
     }
