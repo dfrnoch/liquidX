@@ -55,7 +55,9 @@ final class VisualTourUITests: XCTestCase {
     @MainActor
     func testPostDetailAndLike() {
         let app = launch()
-        let text = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '@priyacodes'")).firstMatch
+        // The first post: later ones may be below the fold on small iPhones,
+        // and the timeline only creates rows as they scroll into view.
+        let text = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '@miraokafor'")).firstMatch
         XCTAssertTrue(text.waitForExistence(timeout: 10))
         text.tap()
         XCTAssertTrue(app.navigationBars["Post"].waitForExistence(timeout: 5))
