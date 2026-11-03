@@ -20,12 +20,29 @@ struct SearchScreen: View {
         .navigationTitle("Search")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-        #endif
         .searchable(text: $session.searchText, prompt: "Search X")
         .onSubmit(of: .search) { submit(session.searchText) }
+        #else
+        // One search field on the Mac: inline at the top of the column (the
+        // trends column hides its own while Search is open).
+        .safeAreaInset(edge: .top, spacing: 0) {
+            MacSearchField(text: $session.searchText) { submit(session.searchText) }
+                .readableWidth()
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+        }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("Refresh", systemImage: "arrow.clockwise") {
+                    Task { await session.reloadTrends() }
+                }
+            }
+        }
+        #endif
         .onChange(of: session.searchText) { _, text in
             if text.isEmpty { submitted = nil }
         }
+        .onChange(of: session.searchSubmissions) { submit(session.searchText) }
         .onAppear {
             // The Mac's search field in the trends column hands its query over.
             if !session.searchText.isEmpty, submitted != session.searchText { submit(session.searchText) }
@@ -103,7 +120,7 @@ struct TrendsList: View {
                     .font(.title2.weight(.heavy))
                     .padding(16)
                 if session.trends.isEmpty {
-                    ContentUnavailableView("Search X", systemImage: "magnifyingglass", description: Text("Find posts, people and topics. Personalized trends appear here when your X app has access to them."))
+                    ContentUnavailableView("Search X", systemImage: "magnifyingglass", description: Text("Find posts, people and topics."))
                         .padding(.top, 20)
                 } else {
                     ForEach(session.trends) { trend in
@@ -141,3 +158,32 @@ struct TrendRow: View {
         .buttonStyle(.plain)
     }
 }
+
+#if os(macOS)
+/// The Mac's glass search capsule.
+struct MacSearchField: View {
+    @Binding var text: String
+    var prompt: LocalizedStringKey = "Search"
+    let onSubmit: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+            TextField(prompt, text: $text)
+                .textFieldStyle(.plain)
+                .onSubmit(onSubmit)
+            if !text.isEmpty {
+                Button("Clear", systemImage: "xmark.circle.fill") { text = "" }
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                    .hoverPointer()
+            }
+        }
+        .font(.title3)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .glassEffect(.regular.interactive(), in: .capsule)
+    }
+}
+#endif

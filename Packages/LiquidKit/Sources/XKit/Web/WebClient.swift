@@ -310,6 +310,13 @@ public actor WebClient: XService {
         let message = errors.first?.string("message")
 
         let status = http.statusCode
+        #if DEBUG
+        if !(200..<300).contains(status) || !errors.isEmpty {
+            // Operation name and status only; never request or response content.
+            let operation = request.url?.lastPathComponent ?? "?"
+            FileHandle.standardError.write(Data("LiquidX web: \(request.httpMethod ?? "GET") \(operation) -> \(status) codes=\(codes.sorted())\n".utf8))
+        }
+        #endif
         if (200..<300).contains(status), body?["data"] != nil || errors.isEmpty {
             return body ?? [:]
         }

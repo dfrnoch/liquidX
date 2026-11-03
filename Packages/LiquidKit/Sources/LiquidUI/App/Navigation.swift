@@ -84,13 +84,16 @@ private struct RouteDestination: View {
     let route: Route
 
     var body: some View {
-        switch route {
-        case .profile(let user): ProfileView(user: user)
-        case .user(let username): ProfileView(username: username)
-        case .post(let post): PostDetailView(post: post)
-        case .postID(let id): PostLoader(id: id)
-        case .search(let query): SearchResultsView(query: query)
+        Group {
+            switch route {
+            case .profile(let user): ProfileView(user: user)
+            case .user(let username): ProfileView(username: username)
+            case .post(let post): PostDetailView(post: post)
+            case .postID(let id): PostLoader(id: id)
+            case .search(let query): SearchResultsView(query: query)
+            }
         }
+        .modifier(PushAppearance())
     }
 }
 

@@ -26,6 +26,8 @@ final class Session {
     var mediaViewer: MediaViewerContext?
     var toast: Toast?
     var searchText = ""
+    /// Bumped when a search is submitted from outside the Search screen.
+    private(set) var searchSubmissions = 0
     var trends: [XTrend] = []
     /// Bumped when the current section is selected again at its root.
     private(set) var scrollToTopTicks: [AppSection: Int] = [:]
@@ -108,6 +110,16 @@ final class Session {
         if let newest = mentions.items.first?.id {
             UserDefaults.standard.set(newest, forKey: "LiquidX.lastSeenMention.\(me.id)")
         }
+    }
+
+    func submitSearch(_ text: String) {
+        searchText = text
+        searchSubmissions += 1
+        select(.search)
+    }
+
+    func reloadTrends() async {
+        await loadTrends()
     }
 
     private func loadTrends() async {

@@ -47,8 +47,20 @@ public final class AppModel {
         appearance = defaults.string(forKey: Self.appearanceKey).flatMap(Appearance.init(rawValue:)) ?? .system
         launchDemo = defaults.bool(forKey: "LiquidXDemo")
         let uiTesting = defaults.bool(forKey: "LiquidXUITesting")
-        credentials = uiTesting ? EphemeralCredentialStore() : KeychainCredentialStore()
-        webCredentials = uiTesting ? EphemeralStore<WebCredentials>() : KeychainStore<WebCredentials>()
+        if uiTesting {
+            credentials = EphemeralCredentialStore()
+            webCredentials = EphemeralStore<WebCredentials>()
+        } else {
+            #if DEBUG && os(macOS)
+            // Ad hoc signed development builds would hit a Keychain password
+            // prompt after every rebuild (see DevelopmentFileStore).
+            credentials = DevelopmentFileStore(account: "x-oauth2", migrateFrom: KeychainCredentialStore())
+            webCredentials = DevelopmentFileStore(account: "x-web-session", migrateFrom: KeychainStore<WebCredentials>())
+            #else
+            credentials = KeychainCredentialStore()
+            webCredentials = KeychainStore<WebCredentials>()
+            #endif
+        }
     }
 
     var effectiveClientID: String {

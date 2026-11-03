@@ -106,3 +106,55 @@ struct NeutralGlassButtonStyle: ButtonStyle {
     }
 }
 #endif
+
+/// Post typography. Names match the post text size (as on X); the Mac uses
+/// slightly larger fixed sizes because its body text style is only 13 pt.
+extension Font {
+    static var postName: Font {
+        #if os(macOS)
+        .system(size: 15, weight: .bold)
+        #else
+        .body.weight(.bold)
+        #endif
+    }
+
+    static var postMeta: Font {
+        #if os(macOS)
+        .system(size: 14)
+        #else
+        .subheadline
+        #endif
+    }
+
+    static var postBody: Font {
+        #if os(macOS)
+        .system(size: 15)
+        #else
+        .body
+        #endif
+    }
+
+    static var postActions: Font {
+        #if os(macOS)
+        .system(size: 13)
+        #else
+        .footnote
+        #endif
+    }
+
+    static var postDetailName: Font {
+        #if os(macOS)
+        .system(size: 17, weight: .bold)
+        #else
+        .headline
+        #endif
+    }
+
+    static var postDetailBody: Font {
+        #if os(macOS)
+        .system(size: 19)
+        #else
+        .title3
+        #endif
+    }
+}

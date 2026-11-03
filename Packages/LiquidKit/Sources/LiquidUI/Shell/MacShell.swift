@@ -26,6 +26,9 @@ struct MacShell: View {
         .onGeometryChange(for: Bool.self) { $0.size.width >= 1_080 } action: { wide in
             withAnimation(.snappy) { showsSidebar = wide }
         }
+        // No toolbar backdrop: the glass toolbar items float over the canvas,
+        // so no strip appears above the trends column.
+        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
         .frame(minWidth: 640, minHeight: 560)
     }
 
@@ -147,23 +150,23 @@ private struct RailButton: View {
 private struct TrendsColumn: View {
     @Environment(Session.self) private var session
     @State private var query = ""
-    @FocusState private var isSearchFocused: Bool
+
+    /// Trends exist for the official API (when the app has access) and the demo.
+    /// Hidden on the Search screen, which lists the trends itself.
+    private var showsTrendsCard: Bool {
+        session.section != .search && (!session.trends.isEmpty || session.service.connection == .officialAPI)
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                HStack(spacing: 10) {
-                    Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-                    TextField("Search", text: $query)
-                        .textFieldStyle(.plain)
-                        .focused($isSearchFocused)
-                        .onSubmit(submit)
+                // The Search screen has its own field; never show two.
+                if session.section != .search {
+                    MacSearchField(text: $query, onSubmit: submit)
+                        .transition(.opacity)
                 }
-                .font(.title3)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .glassEffect(.regular.interactive(), in: .capsule)
 
+                if showsTrendsCard {
                 card {
                     HStack {
                         Text("What's happening").font(.title2.weight(.heavy))
@@ -180,8 +183,7 @@ private struct TrendsColumn: View {
                     } else {
                         ForEach(session.trends) { trend in
                             Button {
-                                session.searchText = trend.name
-                                session.select(.search)
+                                session.submitSearch(trend.name)
                             } label: {
                                 VStack(alignment: .leading, spacing: 2) {
                                     if let category = trend.category {
@@ -201,6 +203,7 @@ private struct TrendsColumn: View {
                         }
                         .padding(.bottom, 8)
                     }
+                }
                 }
 
                 if session.service.isDemo {
@@ -240,8 +243,8 @@ private struct TrendsColumn: View {
     private func submit() {
         let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
-        session.searchText = text
-        session.select(.search)
+        session.submitSearch(text)
+        query = ""
     }
 }
 #endif

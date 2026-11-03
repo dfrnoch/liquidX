@@ -24,9 +24,11 @@ struct MediaGrid: View {
         switch media.count {
         case 1:
             let ratio = min(max(media[0].aspectRatio ?? 16 / 9, 0.75), 2)
+            // Tall images are capped by height; cap the width to match so the
+            // rounded frame hugs the image instead of leaving a black margin.
             tile(0)
                 .aspectRatio(ratio, contentMode: .fit)
-                .frame(maxWidth: .infinity, maxHeight: maxHeight, alignment: .leading)
+                .frame(maxWidth: maxHeight * ratio, maxHeight: maxHeight)
         case 2:
             HStack(spacing: spacing) { tile(0); tile(1) }
                 .aspectRatio(16 / 9, contentMode: .fit)

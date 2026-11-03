@@ -119,11 +119,7 @@ struct ProfileView: View {
             LazyVStack(alignment: .leading, spacing: 0) {
                 ProfileBanner(user: user, height: bannerHeight)
                 ProfileHeader(user: user, model: model, ringColor: wash ?? Theme.canvas)
-                Picker("Section", selection: $model.tab) {
-                    ForEach(ProfileModel.Tab.allCases) { Text($0.title).tag($0) }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
+                SegmentedPicker(selection: $model.tab, options: ProfileModel.Tab.allCases.map { ($0, $0.title) })
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
                 .rowSeparator()

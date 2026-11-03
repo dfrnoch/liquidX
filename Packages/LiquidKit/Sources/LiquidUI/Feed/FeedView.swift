@@ -96,6 +96,18 @@ struct FeedScreen<Header: View>: View {
             position.scrollTo(edge: .top)
         }
         .onChange(of: scrollToTopTrigger) { scrollToTop() }
+        #if os(macOS)
+        // Every Mac page shows at least one toolbar item, so the title bar keeps
+        // the same height across sections.
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button("Refresh", systemImage: "arrow.clockwise") {
+                    Task { await store.refresh() }
+                }
+                .help("Refresh (⌘R)")
+            }
+        }
+        #endif
         .task { await store.loadIfNeeded() }
     }
 

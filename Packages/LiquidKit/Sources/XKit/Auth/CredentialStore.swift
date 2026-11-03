@@ -92,3 +92,39 @@ public final class EphemeralStore<Value: Codable & Sendable>: SecretStore {
 }
 
 public typealias EphemeralCredentialStore = EphemeralStore<StoredCredentials>
+
+/// Development-only store for ad hoc signed macOS builds: every rebuild gets a
+/// new code signature, so the Keychain asks for the login password again on
+/// each launch. This keeps the value in a 0600 file inside the app's sandbox
+/// container instead, migrating once from the Keychain. Never used in Release.
+public struct DevelopmentFileStore<Value: Codable & Sendable>: SecretStore {
+    private let url: URL
+    private let migrateFrom: KeychainStore<Value>
+
+    public init(account: String, migrateFrom keychain: KeychainStore<Value>) {
+        let directory = URL.applicationSupportDirectory.appending(path: "LiquidX-Development", directoryHint: .isDirectory)
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        url = directory.appending(path: "\(account).json")
+        migrateFrom = keychain
+    }
+
+    public func load() -> Value? {
+        if let data = try? Data(contentsOf: url) {
+            return try? JSONDecoder().decode(Value.self, from: data)
+        }
+        guard let migrated = migrateFrom.load() else { return nil }
+        save(migrated)
+        return migrated
+    }
+
+    public func save(_ value: Value) {
+        guard let data = try? JSONEncoder().encode(value) else { return }
+        try? data.write(to: url, options: [.atomic, .completeFileProtection])
+        try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path())
+    }
+
+    public func delete() {
+        try? FileManager.default.removeItem(at: url)
+        migrateFrom.delete()
+    }
+}

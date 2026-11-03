@@ -19,6 +19,7 @@ struct MediaViewer: View {
     }
 
     private var current: XMedia { context.media[index] }
+    private var isVideo: Bool { current.kind != .photo && current.videoURL != nil }
 
     var body: some View {
         ZStack {
@@ -30,10 +31,14 @@ struct MediaViewer: View {
                 .id(current.id)
                 .offset(dragOffset)
                 .gesture(dismissDrag)
-                .onTapGesture { withAnimation(.snappy) { showsChrome.toggle() } }
+                // Videos handle taps themselves (AVKit shows its own controls).
+                .if(!isVideo) { $0.onTapGesture { withAnimation(.snappy) { showsChrome.toggle() } } }
                 .transition(.opacity)
         }
-        .overlay(alignment: .top) { if showsChrome { topBar } }
+        // For videos the bar takes its own space so it never covers the
+        // player's controls; over photos it floats and can be hidden.
+        .safeAreaInset(edge: .top, spacing: 0) { if isVideo { topBar } }
+        .overlay(alignment: .top) { if showsChrome, !isVideo { topBar } }
         .overlay(alignment: .bottom) { if showsChrome { bottomBar } }
         .overlay {
             if context.media.count > 1, showsChrome {

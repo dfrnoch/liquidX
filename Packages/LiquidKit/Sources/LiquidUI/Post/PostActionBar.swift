@@ -62,7 +62,7 @@ struct PostActionBar: View {
                 .accessibilityLabel("Share")
             }
         }
-        .font(.footnote)
+        .font(.postActions)
         .imageScale(.medium)
     }
 }
@@ -80,6 +80,7 @@ private struct ActionButton: View {
             ActionLabel(symbol: symbol, count: count, isActive: isActive, tint: tint)
         }
         .buttonStyle(.plain)
+        .hoverPointer()
         .accessibilityLabel(label)
     }
 }

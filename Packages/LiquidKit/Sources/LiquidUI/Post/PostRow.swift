@@ -8,6 +8,7 @@ struct PostRow: View {
 
     @Environment(Session.self) private var session
     @Environment(Router.self) private var router
+    @State private var isHovering = false
 
     private var post: XPost { item.post }
     private let avatarSize: CGFloat = 44
@@ -44,8 +45,13 @@ struct PostRow: View {
         .padding(.horizontal, 16)
         .padding(.top, 12)
         .padding(.bottom, 8)
+        .background(isHovering ? Color.primary.opacity(0.035) : .clear)
         .contentShape(Rectangle())
         .onTapGesture { router.push(.post(post)) }
+        #if os(macOS)
+        .onHover { hovering in withAnimation(.easeOut(duration: 0.12)) { isHovering = hovering } }
+        .hoverPointer()
+        #endif
         .rowSeparator()
         .contextMenu { PostMenuItems(post: post) }
         .accessibilityElement(children: .contain)
@@ -106,7 +112,7 @@ struct PostHeader: View {
     private var name: some View {
         HStack(spacing: 4) {
             Text(post.author.name)
-                .font(.subheadline.weight(.bold))
+                .font(.postName)
                 .lineLimit(1)
             VerifiedBadge(verification: post.author.verification)
             if post.author.isProtected {
@@ -118,7 +124,7 @@ struct PostHeader: View {
 
     private var meta: some View {
         Text("\(post.author.handle) · \(Formatting.relative(post.createdAt))")
-            .font(.subheadline)
+            .font(.postMeta)
             .foregroundStyle(.secondary)
             .lineLimit(1)
     }
@@ -127,7 +133,7 @@ struct PostHeader: View {
 /// Text, media, quote and link card.
 struct PostBody: View {
     let post: XPost
-    var textStyle: Font = .body
+    var textStyle: Font = .postBody
 
     @Environment(Session.self) private var session
 
@@ -135,7 +141,7 @@ struct PostBody: View {
         VStack(alignment: .leading, spacing: 8) {
             if !post.replyingTo.isEmpty {
                 Text("Replying to \(Text(post.replyingTo.map { "@\($0)" }.joined(separator: " ")).foregroundStyle(Theme.accent))")
-                    .font(.subheadline)
+                    .font(.postMeta)
                     .foregroundStyle(.secondary)
             }
             if !post.text.characters.isEmpty {

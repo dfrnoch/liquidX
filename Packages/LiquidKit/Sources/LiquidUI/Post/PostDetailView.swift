@@ -43,10 +43,10 @@ struct PostDetailView: View {
                 .buttonStyle(.plain)
                 VStack(alignment: .leading, spacing: 1) {
                     HStack(spacing: 4) {
-                        Text(post.author.name).font(.headline)
+                        Text(post.author.name).font(.postDetailName)
                         VerifiedBadge(verification: post.author.verification, size: 16)
                     }
-                    Text(post.author.handle).font(.subheadline).foregroundStyle(.secondary)
+                    Text(post.author.handle).font(.postMeta).foregroundStyle(.secondary)
                 }
                 Spacer()
                 Menu {
@@ -60,7 +60,7 @@ struct PostDetailView: View {
                 .menuIndicator(.hidden)
                 .fixedSize()
             }
-            PostBody(post: post, textStyle: .title3)
+            PostBody(post: post, textStyle: .postDetailBody)
             Text(post.createdAt.formatted(date: .abbreviated, time: .shortened))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
