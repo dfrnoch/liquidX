@@ -12,7 +12,7 @@ IPHONEOS_DEPLOYMENT_TARGET = 26.0
 MACOSX_DEPLOYMENT_TARGET = 26.0
 
 // The next release (MAJOR.MINOR.PATCH). CI overrides CURRENT_PROJECT_VERSION.
-MARKETING_VERSION = 0.1.0
+MARKETING_VERSION = 0.1.1
 CURRENT_PROJECT_VERSION = 1
 // The version shown in Settings ▸ About; release builds pass the full label,
 // e.g. 0.1.0-nightly.20261104.12 (docs/releasing.md).
