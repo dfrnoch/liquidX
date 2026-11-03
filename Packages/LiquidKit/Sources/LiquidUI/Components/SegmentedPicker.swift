@@ -14,6 +14,11 @@ struct SegmentedPicker<Value: Hashable>: View {
         }
         .pickerStyle(.segmented)
         .labelsHidden()
+        #if os(macOS)
+        // Outside the toolbar, regular-size Mac controls keep the old
+        // rounded-rectangle bezel; large ones are Liquid Glass capsules.
+        .controlSize(.large)
+        #endif
     }
 }
 
