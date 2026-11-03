@@ -165,32 +165,93 @@ private struct ZoomableImage: View {
     }
 }
 
+/// Plays a video or GIF with AVKit's own player view. (SwiftUI's `VideoPlayer`
+/// crashes while loading its type metadata on macOS 27, so it is not used.)
+/// GIFs loop silently without controls, as on X.
 private struct InlinePlayer: View {
     let url: URL
     let loops: Bool
 
-    @State private var player: AVPlayer?
-    @State private var looper: (any NSObjectProtocol)?
+    @State private var playback: Playback?
 
     var body: some View {
-        VideoPlayer(player: player)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .onAppear {
-                let player = AVPlayer(url: url)
-                if loops {
-                    looper = NotificationCenter.default.addObserver(forName: AVPlayerItem.didPlayToEndTimeNotification, object: player.currentItem, queue: .main) { _ in
-                        Task { @MainActor in
-                            player.seek(to: .zero)
-                            player.play()
-                        }
-                    }
-                }
-                self.player = player
-                player.play()
+        Group {
+            if let playback {
+                NativePlayerView(player: playback.player, showsControls: !loops)
+            } else {
+                Color.black
             }
-            .onDisappear {
-                player?.pause()
-                if let looper { NotificationCenter.default.removeObserver(looper) }
-            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            let playback = Playback(url: url, loops: loops)
+            self.playback = playback
+            playback.player.play()
+        }
+        .onDisappear { playback?.player.pause() }
     }
 }
+
+/// Owns the player (and, for GIFs, the looper that keeps it repeating).
+private final class Playback {
+    let player: AVQueuePlayer
+    private let looper: AVPlayerLooper?
+
+    init(url: URL, loops: Bool) {
+        let item = AVPlayerItem(url: url)
+        player = AVQueuePlayer()
+        if loops {
+            player.isMuted = true
+            looper = AVPlayerLooper(player: player, templateItem: item)
+        } else {
+            looper = nil
+            player.insert(item, after: nil)
+        }
+    }
+}
+
+#if os(macOS)
+private struct NativePlayerView: NSViewRepresentable {
+    let player: AVPlayer
+    let showsControls: Bool
+
+    func makeNSView(context: Context) -> AVPlayerView {
+        let view = AVPlayerView()
+        view.videoGravity = .resizeAspect
+        view.allowsPictureInPicturePlayback = true
+        update(view)
+        return view
+    }
+
+    func updateNSView(_ view: AVPlayerView, context: Context) {
+        update(view)
+    }
+
+    private func update(_ view: AVPlayerView) {
+        if view.player !== player { view.player = player }
+        view.controlsStyle = showsControls ? .floating : .none
+    }
+}
+#else
+private struct NativePlayerView: UIViewControllerRepresentable {
+    let player: AVPlayer
+    let showsControls: Bool
+
+    func makeUIViewController(context: Context) -> AVPlayerViewController {
+        let controller = AVPlayerViewController()
+        controller.videoGravity = .resizeAspect
+        controller.allowsPictureInPicturePlayback = true
+        update(controller)
+        return controller
+    }
+
+    func updateUIViewController(_ controller: AVPlayerViewController, context: Context) {
+        update(controller)
+    }
+
+    private func update(_ controller: AVPlayerViewController) {
+        if controller.player !== player { controller.player = player }
+        controller.showsPlaybackControls = showsControls
+    }
+}
+#endif
