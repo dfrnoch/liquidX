@@ -226,7 +226,10 @@ private struct ProfileTitle: View {
     }
 }
 
-/// The banner stretches when pulled down instead of revealing empty space.
+/// The banner stretches and blurs when pulled down instead of revealing empty
+/// space, with the refresh spinner over it (the system one sits behind it).
+/// Everything is driven by the scroll offset in `visualEffect`, so pulling
+/// never re-renders the profile.
 private struct ProfileBanner: View {
     let user: XUser
     let height: CGFloat
@@ -249,9 +252,27 @@ private struct ProfileBanner: View {
             let pull = max(0, proxy.frame(in: .scrollView).minY)
             return content
                 .scaleEffect(1 + pull / height, anchor: .bottom)
+                .blur(radius: min(pull / 6, 16), opaque: true)
         }
+        #if os(iOS)
+        .overlay(alignment: .top) {
+            ProgressView()
+                .tint(.white)
+                .shadow(color: .black.opacity(0.3), radius: 4)
+                .visualEffect { content, proxy in
+                    let pull = max(0, proxy.frame(in: .scrollView).minY)
+                    // Pinned just below the navigation bar while the banner moves.
+                    return content
+                        .offset(y: Self.spinnerTop - pull)
+                        .opacity(Double(min(1, max(0, (pull - 16) / 48))))
+                }
+        }
+        #endif
         .accessibilityHidden(true)
     }
+
+    /// Spinner's distance from the top of the screen, under the navigation bar.
+    private static let spinnerTop: CGFloat = 112
 }
 
 /// Fill of the ring around the profile picture.
