@@ -51,6 +51,8 @@ valid until it expires; end it at x.com → Settings → Security → Sessions.
 
 ## Verified (2026-11-03)
 
+- `SearchTimeline` and `UserTweetsAndReplies` now only accept POST (GET returns 404);
+  `WebClient` retries any 404ing GET as POST and remembers it.
 - From a browser context, `HomeTimeline` answers 200 without the
   `x-client-transaction-id` header that x.com's own client sends.
 - Field names and response shapes match the parser fixtures in

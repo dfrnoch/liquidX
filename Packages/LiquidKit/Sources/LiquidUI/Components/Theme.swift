@@ -15,12 +15,19 @@ enum Theme {
 }
 
 extension Color {
-    init(light: Color, dark: Color) {
+    /// A colour that follows light/dark mode. `nonisolated`, because SwiftUI
+    /// resolves dynamic colours on its background render thread; a main-actor
+    /// provider closure traps there under Swift 6's isolation checks.
+    nonisolated init(light: Color, dark: Color) {
         #if os(iOS)
-        self.init(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light) })
+        let light = UIColor(light)
+        let dark = UIColor(dark)
+        self.init(uiColor: UIColor { $0.userInterfaceStyle == .dark ? dark : light })
         #else
+        let light = NSColor(light)
+        let dark = NSColor(dark)
         self.init(nsColor: NSColor(name: nil) { appearance in
-            appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor(dark) : NSColor(light)
+            appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? dark : light
         })
         #endif
     }

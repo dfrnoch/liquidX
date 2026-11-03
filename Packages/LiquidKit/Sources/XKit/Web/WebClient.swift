@@ -19,6 +19,10 @@ public actor WebClient: XService {
     private let session: URLSession
     private var config: WebAPIConfig?
     private var cachedMe: XUser?
+    /// Read operations x.com only accepts as POST. It has been moving queries
+    /// from GET to POST one by one, so a GET that 404s is retried as POST and
+    /// remembered here (verified 2026-11-03: SearchTimeline, UserTweetsAndReplies).
+    private var postOperations: Set<String> = ["HomeTimeline", "HomeLatestTimeline", "SearchTimeline", "UserTweetsAndReplies"]
 
     public init(credentials: WebCredentials, store: any WebCredentialStore) {
         self.credentials = credentials
@@ -224,7 +228,8 @@ public actor WebClient: XService {
         return fresh
     }
 
-    private func graphQL(_ name: String, variables: JSONObject, method: String = "GET", isRetry: Bool = false) async throws -> JSONObject {
+    private func graphQL(_ name: String, variables: JSONObject, method requested: String = "GET", isRetry: Bool = false) async throws -> JSONObject {
+        let method = postOperations.contains(name) ? "POST" : requested
         let config = try await loadConfig(refresh: isRetry)
         guard let operation = config.operation(name) else { throw XAPIError.server(status: 0, message: "Unknown x.com operation \(name).") }
 
@@ -249,6 +254,10 @@ public actor WebClient: XService {
         }
         do {
             return try await send(request, bearer: config.bearer)
+        } catch XAPIError.notFound where method == "GET" {
+            // The operation may have moved to POST.
+            postOperations.insert(name)
+            return try await graphQL(name, variables: variables, method: "POST", isRetry: isRetry)
         } catch XAPIError.notFound where !isRetry {
             // Query IDs rotate with x.com deployments: rediscover and retry once.
             return try await graphQL(name, variables: variables, method: method, isRetry: true)
