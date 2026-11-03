@@ -249,7 +249,7 @@ private struct ProfileBanner: View {
         .frame(height: height)
         .frame(maxWidth: .infinity)
         .visualEffect { content, proxy in
-            let pull = max(0, proxy.frame(in: .scrollView).minY)
+            let pull = Self.pull(proxy)
             return content
                 .scaleEffect(1 + pull / height, anchor: .bottom)
                 .blur(radius: min(pull / 6, 16), opaque: true)
@@ -260,7 +260,7 @@ private struct ProfileBanner: View {
                 .tint(.white)
                 .shadow(color: .black.opacity(0.3), radius: 4)
                 .visualEffect { content, proxy in
-                    let pull = max(0, proxy.frame(in: .scrollView).minY)
+                    let pull = Self.pull(proxy)
                     // Pinned just below the navigation bar while the banner moves.
                     return content
                         .offset(y: Self.spinnerTop - pull)
@@ -273,6 +273,17 @@ private struct ProfileBanner: View {
 
     /// Spinner's distance from the top of the screen, under the navigation bar.
     private static let spinnerTop: CGFloat = 112
+
+    /// How far the banner has been pulled below the top. iOS measures against
+    /// the screen: while a refresh holds the page down, the scroll view's own
+    /// space came out offset by about the status bar, leaving it uncovered.
+    private nonisolated static func pull(_ proxy: GeometryProxy) -> CGFloat {
+        #if os(iOS)
+        max(0, proxy.frame(in: .global).minY)
+        #else
+        max(0, proxy.frame(in: .scrollView).minY)
+        #endif
+    }
 }
 
 /// Fill of the ring around the profile picture.
