@@ -77,6 +77,11 @@ struct DemoArtwork: View {
         return Self.fallback[Int(stableHash(seed) % UInt64(Self.fallback.count))]
     }
 
+    /// A bitmap of the artwork, for the media viewer and saving.
+    static func render(seed: String, aspectRatio: CGFloat, width: CGFloat = 1_600) -> CGImage? {
+        ImageRenderer(content: DemoArtwork(seed: seed).frame(width: width, height: width / aspectRatio)).cgImage
+    }
+
     var body: some View {
         let hash = stableHash(seed)
         let jitter = { (shift: UInt64) -> Float in Float((hash >> shift) & 0xFF) / 255 * 0.3 - 0.15 }

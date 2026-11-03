@@ -169,6 +169,21 @@ final class Session {
         mediaViewer = MediaViewerContext(media: media, index: index, post: post)
     }
 
+    func save(_ media: [XMedia]) {
+        // Videos take a moment to download; say something is happening.
+        if media.contains(where: { $0.kind != .photo }) {
+            show(Toast(message: "Saving…", symbol: "arrow.down.circle"))
+        }
+        Task {
+            do {
+                try await MediaSaver.save(media)
+                show(Toast(message: MediaSaver.savedMessage, symbol: "checkmark.circle.fill"))
+            } catch {
+                report(error)
+            }
+        }
+    }
+
     func show(_ toast: Toast) {
         withAnimation(.snappy) { self.toast = toast }
         toastTask?.cancel()

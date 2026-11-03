@@ -126,7 +126,6 @@ struct PostHeader: View {
                         .foregroundStyle(.secondary)
                         .frame(width: 30, height: 30)
                         .contentShape(Circle())
-                        .glassEffect(.regular.interactive(), in: .circle)
                 }
                 .menuStyle(.button)
                 .buttonStyle(.plain)
@@ -214,6 +213,10 @@ struct PostMenuItems: View {
         Button("Copy Link", systemImage: "link") { Pasteboard.copy(post.url.absoluteString) }
         Button("Copy Text", systemImage: "doc.on.doc") { Pasteboard.copy(post.plainText) }
         Button("Open on x.com", systemImage: "safari") { openURL(post.url) }
+        if !post.media.isEmpty {
+            Divider()
+            Button(MediaSaver.title(for: post.media), systemImage: "square.and.arrow.down") { session.save(post.media) }
+        }
         Divider()
         Button("View \(post.author.handle)", systemImage: "person.crop.circle") {
             session.open(.profile(post.author))

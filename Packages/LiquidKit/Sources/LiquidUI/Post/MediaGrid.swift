@@ -48,11 +48,11 @@ struct MediaGrid: View {
     }
 
     @ViewBuilder
-    private func surface(_ item: XMedia) -> some View {
+    private func surface(_ item: XMedia, at index: Int) -> some View {
         let poster = item.imageURL(media.count == 1 ? .medium : .small)
         let size: CGFloat = media.count == 1 ? 600 : 320
         if item.kind != .photo, let video = item.videoURL {
-            InlineVideo(media: item, url: video, posterURL: poster, pointSize: size)
+            InlineVideo(media: item, url: video, posterURL: poster, pointSize: size) { onOpen(index) }
         } else {
             RemoteImage(poster, pointSize: size)
         }
@@ -68,9 +68,10 @@ struct MediaGrid: View {
 
     private func tile(_ index: Int) -> some View {
         let item = media[index]
-        return surface(item)
+        return surface(item, at: index)
             .overlay(alignment: .bottomLeading) {
-                if item.kind != .photo {
+                // Inline Mac videos show their own remaining time.
+                if item.kind != .photo, !Self.playsInline(item) {
                     VideoBadge(media: item)
                 }
             }
@@ -86,8 +87,8 @@ struct MediaGrid: View {
                 }
             }
             .contentShape(Rectangle())
-            // On the Mac videos play inline with native controls (and their
-            // own full-screen button), so clicks belong to the player.
+            // On the Mac videos play inline with their own controls (click
+            // pauses, expand opens the viewer), so clicks belong to the player.
             .if(!Self.playsInline(item)) { $0.onTapGesture { onOpen(index) } }
             .accessibilityElement()
             .accessibilityLabel(Text(item.altText ?? (item.kind == .photo ? "Image" : "Video")))
@@ -120,21 +121,23 @@ struct QuoteCard: View {
 
     @Environment(Router.self) private var router
     @Environment(Session.self) private var session
+    // Same type scale as the post itself (`.subheadline` is 11pt on the Mac).
+    @Environment(\.postStyle) private var style
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
-                Avatar(user: quote.author, size: 20)
-                Text(quote.author.name).font(.subheadline.weight(.bold)).lineLimit(1)
-                VerifiedBadge(verification: quote.author.verification, size: 13)
+                Avatar(user: quote.author, size: 22)
+                Text(quote.author.name).font(style.name).lineLimit(1)
+                VerifiedBadge(verification: quote.author.verification, size: 15)
                 Text("\(quote.author.handle) · \(Formatting.relative(quote.createdAt))")
-                    .font(.subheadline)
+                    .font(style.meta)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
             if !quote.text.characters.isEmpty {
                 Text(quote.text)
-                    .font(.subheadline)
+                    .font(style.body)
                     .lineLimit(6)
                     .tint(Theme.accent)
             }
