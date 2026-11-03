@@ -9,6 +9,7 @@ struct PostDetailView: View {
     @Environment(Session.self) private var session
     @Environment(Router.self) private var router
     @Environment(\.postStyle) private var style
+    @Environment(\.palette) private var palette
     @State private var replies: [XTimelineItem] = []
     @State private var phase: Phase = .loading
 
@@ -22,14 +23,14 @@ struct PostDetailView: View {
             }
             .readableWidth()
         }
-        .background(Theme.canvas)
+        .background(palette.canvas)
         .navigationTitle("Post")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .safeAreaBar(edge: .bottom) { replyBar }
         .scrollEdgeEffectStyle(.soft, for: .top)
-        .scrollEdgeEffectStyle(.hard, for: .bottom)
+        .scrollEdgeEffectStyle(.soft, for: .bottom)
         .task { await loadReplies() }
         .refreshable { await loadReplies() }
     }
@@ -53,11 +54,16 @@ struct PostDetailView: View {
                 Menu {
                     PostMenuItems(post: post)
                 } label: {
-                    Image(systemName: "ellipsis").frame(width: 32, height: 32)
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 32, height: 32)
+                        .contentShape(Circle())
                 }
                 .menuStyle(.button)
-                .buttonStyle(.glass)
-                .buttonBorderShape(.circle)
+                .buttonStyle(.plain)
+                .hoverPointer()
+                .accessibilityLabel("More")
                 .menuIndicator(.hidden)
                 .fixedSize()
             }

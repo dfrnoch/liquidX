@@ -175,3 +175,99 @@ struct PostStyle: Equatable {
 extension EnvironmentValues {
     @Entry var postStyle = PostStyle()
 }
+
+/// The Mac window's look, from Settings → Appearance. iPhone and iPad always
+/// use `.classic`. Each theme has light and dark variants.
+enum WindowTheme: String, CaseIterable, Identifiable {
+    /// X's own: pure black (or white) everywhere.
+    case classic
+    /// Soft charcoal window with slightly raised columns and cards.
+    case graphite
+    /// X's "Dim": deep blue-grey.
+    case dim
+    /// The desktop shows through a blur behind translucent columns.
+    case glass
+
+    var id: Self { self }
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .classic: "Classic"
+        case .graphite: "Graphite"
+        case .dim: "Dim"
+        case .glass: "Glass"
+        }
+    }
+
+    var palette: Palette {
+        switch self {
+        case .classic:
+            .classic
+        case .graphite:
+            Palette(
+                window: Color(light: Color(white: 0.94), dark: Color(white: 0.055)),
+                column: Color(light: .white, dark: Color(white: 0.075)),
+                panel: Color(light: .white, dark: Color(white: 0.075))
+            )
+        case .dim:
+            Palette(
+                window: Color(light: Color(red: 0.93, green: 0.95, blue: 0.96), dark: Color(red: 0.063, green: 0.09, blue: 0.118)),
+                column: Color(light: Color(red: 0.97, green: 0.98, blue: 0.98), dark: Color(red: 0.082, green: 0.125, blue: 0.169)),
+                panel: Color(light: .white, dark: Color(red: 0.118, green: 0.153, blue: 0.196))
+            )
+        case .glass:
+            Palette(
+                window: .clear,
+                column: Color(light: Color.white.opacity(0.5), dark: Color.black.opacity(0.32)),
+                canvas: .clear,
+                panel: Color(light: Color.white.opacity(0.5), dark: Color.white.opacity(0.06)),
+                isTranslucent: true
+            )
+        }
+    }
+}
+
+/// Background colours for one `WindowTheme`, read from the environment.
+struct Palette: Equatable {
+    /// Behind the columns: the Mac window itself.
+    var window: Color
+    /// Each column's fill (the timeline panel).
+    var column: Color
+    /// Screen backgrounds inside a column. Clear for glass, so the column's
+    /// translucent fill isn't stacked once per screen.
+    var canvas: Color
+    /// Raised cards (trends, about).
+    var panel: Color
+    /// The window shows the desktop through a behind-window blur.
+    var isTranslucent = false
+
+    init(window: Color, column: Color, canvas: Color? = nil, panel: Color, isTranslucent: Bool = false) {
+        self.window = window
+        self.column = column
+        self.canvas = canvas ?? column
+        self.panel = panel
+        self.isTranslucent = isTranslucent
+    }
+
+    static let classic = Palette(window: Theme.canvas, column: Theme.canvas, panel: Theme.panel)
+}
+
+extension EnvironmentValues {
+    @Entry var palette = Palette.classic
+}
+
+#if os(macOS)
+/// The behind-window blur under the glass theme.
+struct WindowGlass: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = .sidebar
+        view.blendingMode = .behindWindow
+        // Stay see-through when the window is in the background too.
+        view.state = .active
+        return view
+    }
+
+    func updateNSView(_ view: NSVisualEffectView, context: Context) {}
+}
+#endif

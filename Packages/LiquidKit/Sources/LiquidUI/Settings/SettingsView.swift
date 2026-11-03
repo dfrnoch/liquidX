@@ -46,6 +46,12 @@ public struct SettingsView: View {
                     ForEach(Appearance.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
+                #if os(macOS)
+                Picker("Window", selection: $model.windowTheme) {
+                    ForEach(WindowTheme.allCases) { Text($0.title).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                #endif
             }
 
             Section {

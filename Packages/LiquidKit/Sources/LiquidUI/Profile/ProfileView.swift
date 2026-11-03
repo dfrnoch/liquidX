@@ -78,6 +78,7 @@ struct ProfileView: View {
     @Environment(Session.self) private var session
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.palette) private var palette
 
     init(user: XUser) {
         _model = State(initialValue: ProfileModel(user: user, username: user.username))
@@ -109,16 +110,16 @@ struct ProfileView: View {
                 ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .background(Theme.canvas)
+        .background(palette.canvas)
         .task { await model.load(using: session) }
     }
 
     private func content(_ user: XUser) -> some View {
-        let wash = tint.map { $0.mix(with: Theme.canvas, by: colorScheme == .dark ? 0.45 : 0.7) }
+        let wash = tint.map { $0.mix(with: palette.column, by: colorScheme == .dark ? 0.45 : 0.7) }
         return ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
                 ProfileBanner(user: user, height: bannerHeight)
-                ProfileHeader(user: user, model: model, ringColor: wash ?? Theme.canvas)
+                ProfileHeader(user: user, model: model, ringColor: wash ?? palette.column)
                 SegmentedPicker(selection: $model.tab, options: ProfileModel.Tab.allCases.map { ($0, $0.title) })
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
@@ -140,8 +141,8 @@ struct ProfileView: View {
                     LinearGradient(
                         stops: [
                             .init(color: wash, location: 0),
-                            .init(color: wash.mix(with: Theme.canvas, by: 0.5), location: 0.55),
-                            .init(color: Theme.canvas, location: 1),
+                            .init(color: wash.mix(with: palette.column, by: 0.5), location: 0.55),
+                            .init(color: palette.canvas, location: 1),
                         ],
                         startPoint: .top,
                         endPoint: .bottom

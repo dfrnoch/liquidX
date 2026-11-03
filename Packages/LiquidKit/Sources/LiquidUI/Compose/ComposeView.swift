@@ -6,6 +6,7 @@ struct ComposeView: View {
 
     @Environment(Session.self) private var session
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.palette) private var palette
     @State private var text = ""
     @State private var isSending = false
     @FocusState private var isFocused: Bool
@@ -50,7 +51,7 @@ struct ComposeView: View {
                 }
                 .padding(16)
             }
-            .background(Theme.canvas)
+            .background(palette.canvas)
             .safeAreaInset(edge: .bottom) {
                 HStack {
                     Label("Everyone can reply", systemImage: "globe")

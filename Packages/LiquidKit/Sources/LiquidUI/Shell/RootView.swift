@@ -11,7 +11,7 @@ public struct RootView: View {
         Group {
             switch model.phase {
             case .launching:
-                Theme.canvas.ignoresSafeArea()
+                model.palette.window.ignoresSafeArea()
             case .signedOut:
                 SignInView(model: model)
                     .transition(.opacity)
@@ -23,6 +23,7 @@ public struct RootView: View {
         .tint(Theme.accent)
         .preferredColorScheme(model.appearance.colorScheme)
         .environment(\.postStyle, model.postStyle)
+        .environment(\.palette, model.palette)
         .task { await model.start() }
     }
 }

@@ -59,6 +59,7 @@ struct FeedScreen<Header: View>: View {
 
     @State private var position = ScrollPosition(idType: String.self)
     @State private var isNearTop = true
+    @Environment(\.palette) private var palette
 
     var body: some View {
         ScrollView {
@@ -78,7 +79,7 @@ struct FeedScreen<Header: View>: View {
             if nearTop { store.markSeen() }
         }
         .scrollContentBackground(.hidden)
-        .background(Theme.canvas)
+        .background(palette.canvas)
         .overlay(alignment: .top) {
             if store.unseenCount > 0, !isNearTop {
                 NewPostsPill(count: store.unseenCount, authors: store.unseenAuthors) {

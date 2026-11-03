@@ -6,10 +6,13 @@ import XKit
 /// People / Media tabs.
 struct SearchScreen: View {
     @Environment(Session.self) private var session
+    @Environment(\.palette) private var palette
     @State private var submitted: String?
     @State private var suggestions = SearchSuggestions()
     #if os(macOS)
     @FocusState private var isFieldFocused: Bool
+    /// Height of the inline field's bar; the dropdown opens just below it.
+    @State private var fieldBarHeight: CGFloat = 0
     #endif
 
     var body: some View {
@@ -22,7 +25,7 @@ struct SearchScreen: View {
                 SearchIdleView { submit($0) }
             }
         }
-        .background(Theme.canvas)
+        .background(palette.canvas)
         .navigationTitle("Search")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -39,6 +42,7 @@ struct SearchScreen: View {
                 .readableWidth()
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { fieldBarHeight = $0 }
         }
         .overlay(alignment: .top) {
             if showsDropdown {
@@ -54,7 +58,8 @@ struct SearchScreen: View {
                 .glassEffect(.regular, in: .rect(cornerRadius: 22))
                 .readableWidth()
                 .padding(.horizontal, 16)
-                .padding(.top, 2)
+                // The overlay spans the field's inset too; start below the field.
+                .padding(.top, max(0, fieldBarHeight - 4))
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
@@ -227,9 +232,11 @@ private struct SearchIdleView: View {
 struct SearchResultsView: View {
     let query: String
 
+    @Environment(\.palette) private var palette
+
     var body: some View {
         SearchResultsPane(query: query)
-            .background(Theme.canvas)
+            .background(palette.canvas)
             .navigationTitle(query)
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)

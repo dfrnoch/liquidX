@@ -35,6 +35,19 @@ public final class AppModel {
         didSet { UserDefaults.standard.set(showsAvatarColumn, forKey: "LiquidX.avatarColumn") }
     }
 
+    /// Mac only; see `WindowTheme`.
+    var windowTheme: WindowTheme {
+        didSet { UserDefaults.standard.set(windowTheme.rawValue, forKey: "LiquidX.windowTheme") }
+    }
+
+    var palette: Palette {
+        #if os(macOS)
+        windowTheme.palette
+        #else
+        .classic
+        #endif
+    }
+
     var postStyle: PostStyle {
         PostStyle(textSize: textSize, showsAvatarColumn: showsAvatarColumn)
     }
@@ -62,6 +75,7 @@ public final class AppModel {
             ? .medium
             : PostTextSize(rawValue: defaults.integer(forKey: "LiquidX.textSize")) ?? .medium
         showsAvatarColumn = defaults.object(forKey: "LiquidX.avatarColumn") == nil || defaults.bool(forKey: "LiquidX.avatarColumn")
+        windowTheme = defaults.string(forKey: "LiquidX.windowTheme").flatMap(WindowTheme.init(rawValue:)) ?? .classic
         launchDemo = defaults.bool(forKey: "LiquidXDemo")
         let uiTesting = defaults.bool(forKey: "LiquidXUITesting")
         if uiTesting {

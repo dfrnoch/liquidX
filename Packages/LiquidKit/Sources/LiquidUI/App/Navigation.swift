@@ -102,6 +102,7 @@ private struct PostLoader: View {
     let id: String
 
     @Environment(Session.self) private var session
+    @Environment(\.palette) private var palette
     @State private var post: XPost?
     @State private var error: String?
 
@@ -115,7 +116,7 @@ private struct PostLoader: View {
                 ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .background(Theme.canvas)
+        .background(palette.canvas)
         .task {
             do {
                 post = try await session.service.post(id: id)

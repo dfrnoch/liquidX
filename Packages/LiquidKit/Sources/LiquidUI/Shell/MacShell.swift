@@ -6,6 +6,7 @@ import XKit
 /// when the window is wide enough, a "What's happening" column with search.
 struct MacShell: View {
     @Environment(Session.self) private var session
+    @Environment(\.palette) private var palette
     /// The trends column only appears when the window can afford it.
     @State private var showsSidebar = true
 
@@ -22,7 +23,14 @@ struct MacShell: View {
         }
         .padding(.horizontal, 16)
         .frame(maxWidth: .infinity)
-        .background(Theme.canvas)
+        .background {
+            if palette.isTranslucent {
+                WindowGlass().ignoresSafeArea()
+            } else {
+                palette.window.ignoresSafeArea()
+            }
+        }
+        .animation(.smooth(duration: 0.3), value: palette)
         .onGeometryChange(for: Bool.self) { $0.size.width >= 1_080 } action: { wide in
             withAnimation(.snappy) { showsSidebar = wide }
         }
@@ -44,6 +52,7 @@ struct MacShell: View {
             }
         }
         .id(session.section)
+        .background(palette.column)
         .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).strokeBorder(Theme.hairline, lineWidth: 0.5))
         .padding(.vertical, 12)
@@ -149,6 +158,7 @@ private struct RailButton: View {
 /// Right column: search field, trends and an about card.
 private struct TrendsColumn: View {
     @Environment(Session.self) private var session
+    @Environment(\.palette) private var palette
     @State private var query = ""
 
     /// Trends exist for the official API (when the app has access) and the demo.
@@ -236,7 +246,7 @@ private struct TrendsColumn: View {
     private func card<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 0, content: content)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Theme.panel, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .background(palette.panel, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(Theme.hairline, lineWidth: 0.5))
     }
 
