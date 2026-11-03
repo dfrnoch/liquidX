@@ -15,6 +15,8 @@ struct HomeScreen: View {
             scrollToTopTrigger: session.scrollToTopTicks[.home, default: 0]
         )
             .id(session.homeFilter)
+            // A kept store may be old by the time its feed is picked again.
+            .task(id: session.homeFilter) { await session.home.refreshIfStale(after: session.autoRefreshInterval) }
             .onChange(of: scenePhase) { _, phase in
                 guard phase == .active else { return }
                 Task { await session.home.refreshIfStale(after: session.autoRefreshInterval) }

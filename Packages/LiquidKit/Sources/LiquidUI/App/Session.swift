@@ -17,6 +17,9 @@ final class Session {
         didSet { if homeFilter != oldValue { rebuildHome() } }
     }
     private(set) var home: FeedStore
+    /// Home stores by filter, so switching feeds back and forth keeps each
+    /// one's posts instead of rebuilding and reloading it.
+    @ObservationIgnored private var homeStores: [HomeFilter: FeedStore] = [:]
     let mentions: FeedStore
     let bookmarks: FeedStore
     private(set) var unreadMentions = 0
@@ -53,6 +56,7 @@ final class Session {
         engagement = EngagementStore(service: service)
         engagement.session = self
         for section in AppSection.allCases { routers[section] = Router() }
+        homeStores[filter] = home
     }
 
     private static func makeHome(service: any XService, me: XUser, filter: HomeFilter) -> FeedStore {
@@ -62,7 +66,12 @@ final class Session {
     }
 
     private func rebuildHome() {
-        home = Self.makeHome(service: service, me: me, filter: homeFilter)
+        if let store = homeStores[homeFilter] {
+            home = store
+        } else {
+            home = Self.makeHome(service: service, me: me, filter: homeFilter)
+            homeStores[homeFilter] = home
+        }
     }
 
     func router(for section: AppSection) -> Router {

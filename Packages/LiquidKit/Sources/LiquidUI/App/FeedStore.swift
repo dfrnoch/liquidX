@@ -28,25 +28,36 @@ final class FeedStore {
     @ObservationIgnored private let cache: FeedCache?
     @ObservationIgnored private var refreshTask: Task<Void, Never>?
     @ObservationIgnored private(set) var lastRefresh: Date?
+    @ObservationIgnored private var hasRestoredCache = false
 
     init(cache: FeedCache? = nil, fetch: @escaping Fetch) {
         self.fetch = fetch
         self.cache = cache
-        if let cached = cache?.load(), !cached.items.isEmpty {
-            items = cached.items
-            nextCursor = cached.nextCursor
-            phase = .loaded
-        }
     }
 
     var isEmpty: Bool { items.isEmpty }
 
     func loadIfNeeded() async {
+        await restoreCacheIfNeeded()
         switch phase {
         case .idle: await loadFirstPage()
         case .loaded where lastRefresh == nil: await refresh()
         default: break
         }
+    }
+
+    /// Shows the cached timeline before the first fetch. Decoding runs off the
+    /// main actor: rich text is slow to decode, and doing it while switching
+    /// feeds would stall the segmented control's animation.
+    private func restoreCacheIfNeeded() async {
+        guard !hasRestoredCache else { return }
+        hasRestoredCache = true
+        guard let cache, phase == .idle else { return }
+        let cached = await Task.detached(priority: .userInitiated) { cache.load() }.value
+        guard phase == .idle, items.isEmpty, let cached, !cached.items.isEmpty else { return }
+        items = cached.items
+        nextCursor = cached.nextCursor
+        phase = .loaded
     }
 
     func reload() async {
