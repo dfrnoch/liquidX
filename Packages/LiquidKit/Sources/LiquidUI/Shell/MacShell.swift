@@ -18,7 +18,6 @@ struct MacShell: View {
             if showsSidebar {
                 TrendsColumn()
                     .frame(width: 330)
-                    .transition(.move(edge: .trailing).combined(with: .opacity))
             }
         }
         .padding(.horizontal, 16)
@@ -31,12 +30,15 @@ struct MacShell: View {
             }
         }
         .animation(.smooth(duration: 0.3), value: palette)
+        // Not animated: animating the timeline's width re-wraps every row on each
+        // frame, and the feed's scroll position jumps (at launch and while resizing).
         .onGeometryChange(for: Bool.self) { $0.size.width >= 1_080 } action: { wide in
-            withAnimation(.snappy) { showsSidebar = wide }
+            showsSidebar = wide
         }
-        // No toolbar backdrop: the glass toolbar items float over the canvas,
-        // so no strip appears above the trends column.
-        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+        // The title bar stays opaque: `.toolbarBackgroundVisibility(.hidden)` makes it
+        // transparent, and on macOS 27 a window with a transparent title bar, a
+        // full-size content view and a toolbar jumps away from the pointer when it is
+        // dragged onto another display (AppKit; reproduced without SwiftUI).
         .frame(minWidth: 640, minHeight: 560)
     }
 

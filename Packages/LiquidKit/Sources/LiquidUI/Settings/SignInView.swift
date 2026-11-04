@@ -140,7 +140,7 @@ struct SignInView: View {
         }
         #endif
         #if os(macOS)
-        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+        // Not `.toolbarBackgroundVisibility(.hidden)`: see MacShell.
         .navigationTitle("")
         #endif
     }
