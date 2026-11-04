@@ -22,7 +22,11 @@ official X API v2 with user-supplied OAuth 2.0 Client IDs.
 - `Packages/LiquidKit/Sources/LiquidUI`: SwiftUI interface, main-actor by default.
   `App/` holds state (`AppModel`, `Session`, `FeedStore`, navigation), `Shell/`
   the iPhone/iPad (`PhoneShell`) and Mac (`MacShell`) layouts.
+- `Packages/LiquidKit/Sources/LiquidUpdateSupport`: Mac update checks shared by
+  the app and its update installer. Foundation, CryptoKit and Security only.
 - `App/`: app target (composition root only), synchronized folder.
+- `UpdateInstaller/`: the Mac app's embedded, unsandboxed update installer XPC
+  service (`docs/updates.md`).
 - `UITests/`: XCUITest visual tour in demo mode.
 - `Config/`: xcconfigs, Info.plist, entitlements. `MARKETING_VERSION` in
   `Shared.xcconfig` is the next production version.
@@ -43,7 +47,9 @@ reports duration; hitch time ratio needs a physical device.
 
 Debug-only launch arguments: `-LiquidXAutoSignIn YES` starts the OAuth flow on
 launch (needs a Client ID); `-LiquidXKeychainSelfTest YES` writes the Keychain
-round-trip result to stderr.
+round-trip result to stderr; `-LiquidXUpdateFeed <url>` checks for updates in a
+local GitHub-shaped `releases.json`, and `-LiquidXUpdateAutoInstall YES` installs
+without the banner (`docs/updates.md`).
 
 Launch arguments: `-LiquidXDemo YES`, `-LiquidXAppearance dark|light|system`,
 `-LiquidXSection home|notifications|bookmarks|profile|search`,

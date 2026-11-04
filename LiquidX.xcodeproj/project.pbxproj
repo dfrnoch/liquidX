@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		A10000000000000000000001 /* LiquidUI in Frameworks */ = {isa = PBXBuildFile; productRef = A20000000000000000000001 /* LiquidUI */; };
+		B10000000000000000000001 /* LiquidXUpdateInstaller.xpc in Embed XPC Services */ = {isa = PBXBuildFile; fileRef = B30000000000000000000001 /* LiquidXUpdateInstaller.xpc */; platformFilters = (macos, ); settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B10000000000000000000002 /* LiquidUpdateSupport in Frameworks */ = {isa = PBXBuildFile; productRef = B20000000000000000000001 /* LiquidUpdateSupport */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -18,7 +20,28 @@
 			remoteGlobalIDString = A70000000000000000000001;
 			remoteInfo = LiquidX;
 		};
+		BD0000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B70000000000000000000001;
+			remoteInfo = LiquidXUpdateInstaller;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B50000000000000000000002 /* Embed XPC Services */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/XPCServices";
+			dstSubfolderSpec = 16;
+			files = (
+				B10000000000000000000001 /* LiquidXUpdateInstaller.xpc in Embed XPC Services */,
+			);
+			name = "Embed XPC Services";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		A30000000000000000000009 /* LiquidXUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LiquidXUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -31,11 +54,15 @@
 		A30000000000000000000006 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A30000000000000000000007 /* LiquidX.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LiquidX.entitlements; sourceTree = "<group>"; };
 		A30000000000000000000008 /* LiquidKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Packages/LiquidKit; sourceTree = "<group>"; };
+		B30000000000000000000001 /* LiquidXUpdateInstaller.xpc */ = {isa = PBXFileReference; explicitFileType = "wrapper.xpc-service"; includeInIndex = 0; path = LiquidXUpdateInstaller.xpc; sourceTree = BUILT_PRODUCTS_DIR; };
+		B30000000000000000000002 /* UpdateInstaller.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = UpdateInstaller.xcconfig; sourceTree = "<group>"; };
+		B30000000000000000000003 /* UpdateInstaller-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "UpdateInstaller-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A40000000000000000000002 /* UITests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = UITests; sourceTree = "<group>"; };
 		A40000000000000000000001 /* App */ = {isa = PBXFileSystemSynchronizedRootGroup; path = App; sourceTree = "<group>"; };
+		B40000000000000000000001 /* UpdateInstaller */ = {isa = PBXFileSystemSynchronizedRootGroup; path = UpdateInstaller; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +81,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B50000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B10000000000000000000002 /* LiquidUpdateSupport in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -62,6 +97,7 @@
 			children = (
 				A40000000000000000000001 /* App */,
 				A40000000000000000000002 /* UITests */,
+				B40000000000000000000001 /* UpdateInstaller */,
 				A30000000000000000000008 /* LiquidKit */,
 				A60000000000000000000003 /* Config */,
 				A60000000000000000000002 /* Products */,
@@ -73,6 +109,7 @@
 			children = (
 				A30000000000000000000001 /* LiquidX.app */,
 				A30000000000000000000009 /* LiquidXUITests.xctest */,
+				B30000000000000000000001 /* LiquidXUpdateInstaller.xpc */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -87,6 +124,8 @@
 				A3000000000000000000000A /* UITests.xcconfig */,
 				A30000000000000000000006 /* Info.plist */,
 				A30000000000000000000007 /* LiquidX.entitlements */,
+				B30000000000000000000002 /* UpdateInstaller.xcconfig */,
+				B30000000000000000000003 /* UpdateInstaller-Info.plist */,
 			);
 			path = Config;
 			sourceTree = "<group>";
@@ -122,10 +161,12 @@
 				A80000000000000000000001 /* Sources */,
 				A50000000000000000000001 /* Frameworks */,
 				A80000000000000000000002 /* Resources */,
+				B50000000000000000000002 /* Embed XPC Services */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				BE0000000000000000000001 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				A40000000000000000000001 /* App */,
@@ -137,6 +178,29 @@
 			productName = LiquidX;
 			productReference = A30000000000000000000001 /* LiquidX.app */;
 			productType = "com.apple.product-type.application";
+		};
+		B70000000000000000000001 /* LiquidXUpdateInstaller */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B90000000000000000000001 /* Build configuration list for PBXNativeTarget "LiquidXUpdateInstaller" */;
+			buildPhases = (
+				B80000000000000000000001 /* Sources */,
+				B50000000000000000000001 /* Frameworks */,
+				B80000000000000000000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B40000000000000000000001 /* UpdateInstaller */,
+			);
+			name = LiquidXUpdateInstaller;
+			packageProductDependencies = (
+				B20000000000000000000001 /* LiquidUpdateSupport */,
+			);
+			productName = LiquidXUpdateInstaller;
+			productReference = B30000000000000000000001 /* LiquidXUpdateInstaller.xpc */;
+			productType = "com.apple.product-type.xpc-service";
 		};
 /* End PBXNativeTarget section */
 
@@ -154,6 +218,9 @@
 					A70000000000000000000002 = {
 						CreatedOnToolsVersion = 27.2;
 						TestTargetID = A70000000000000000000001;
+					};
+					B70000000000000000000001 = {
+						CreatedOnToolsVersion = 27.2;
 					};
 				};
 			};
@@ -176,6 +243,7 @@
 			targets = (
 				A70000000000000000000001 /* LiquidX */,
 				A70000000000000000000002 /* LiquidXUITests */,
+				B70000000000000000000001 /* LiquidXUpdateInstaller */,
 			);
 		};
 /* End PBXProject section */
@@ -189,6 +257,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		A80000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B80000000000000000000002 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -212,6 +287,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B80000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -219,6 +301,12 @@
 			isa = PBXTargetDependency;
 			target = A70000000000000000000001 /* LiquidX */;
 			targetProxy = AD0000000000000000000001 /* PBXContainerItemProxy */;
+		};
+		BE0000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			platformFilters = (macos, );
+			target = B70000000000000000000001 /* LiquidXUpdateInstaller */;
+			targetProxy = BD0000000000000000000001 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -265,6 +353,20 @@
 			};
 			name = Release;
 		};
+		BC0000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B30000000000000000000002 /* UpdateInstaller.xcconfig */;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		BC0000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B30000000000000000000002 /* UpdateInstaller.xcconfig */;
+			buildSettings = {
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -295,6 +397,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		B90000000000000000000001 /* Build configuration list for PBXNativeTarget "LiquidXUpdateInstaller" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BC0000000000000000000001 /* Debug */,
+				BC0000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
@@ -308,6 +419,10 @@
 		A20000000000000000000001 /* LiquidUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = LiquidUI;
+		};
+		B20000000000000000000001 /* LiquidUpdateSupport */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LiquidUpdateSupport;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -1,0 +1,19 @@
+// UpdateInstaller.xcconfig: the Mac app's embedded update installer XPC service
+// (layered on the project-level Debug/Release.xcconfig; docs/updates.md).
+
+PRODUCT_NAME = LiquidXUpdateInstaller
+PRODUCT_BUNDLE_IDENTIFIER = dev.frnoch.liquidx.UpdateInstaller
+GENERATE_INFOPLIST_FILE = NO
+INFOPLIST_FILE = Config/UpdateInstaller-Info.plist
+SKIP_INSTALL = YES
+
+// Mac only; the iOS app has no installer.
+SDKROOT = macosx
+SUPPORTED_PLATFORMS = macosx
+SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated
+
+// Hardened runtime, no entitlements: this service is deliberately not sandboxed so
+// it can replace the app bundle; it accepts only LiquidX as its client.
+ENABLE_HARDENED_RUNTIME = YES
+ENABLE_APP_SANDBOX = NO
+CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO

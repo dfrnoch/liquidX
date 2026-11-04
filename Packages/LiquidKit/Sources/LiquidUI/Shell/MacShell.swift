@@ -5,6 +5,7 @@ import XKit
 /// Mac layout from the concept: a floating glass rail, the timeline column and,
 /// when the window is wide enough, a "What's happening" column with search.
 struct MacShell: View {
+    @Environment(AppModel.self) private var model
     @Environment(Session.self) private var session
     @Environment(\.palette) private var palette
     /// The trends column only appears when the window can afford it.
@@ -58,6 +59,7 @@ struct MacShell: View {
         .background(palette.column)
         .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).strokeBorder(Theme.hairline, lineWidth: 0.5))
+        .updateBanner(model.updater)
         .padding(.vertical, 12)
     }
 }

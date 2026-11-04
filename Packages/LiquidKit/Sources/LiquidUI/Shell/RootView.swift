@@ -14,6 +14,9 @@ public struct RootView: View {
                 model.palette.window.ignoresSafeArea()
             case .signedOut:
                 SignInView(model: model)
+                    #if os(macOS)
+                    .updateBanner(model.updater)
+                    #endif
                     .transition(.opacity)
             case .signedIn(let session):
                 SessionView(session: session)
@@ -114,10 +117,19 @@ extension FocusedValues {
 /// Menu bar commands (macOS) and hardware-keyboard shortcuts (iPad).
 public struct LiquidCommands: Commands {
     @FocusedValue(\.session) private var session
+    private let model: AppModel
 
-    public init() {}
+    public init(model: AppModel) {
+        self.model = model
+    }
 
     public var body: some Commands {
+        #if os(macOS)
+        CommandGroup(after: .appInfo) {
+            Button("Check for Updates…") { model.updater?.check(userInitiated: true) }
+                .disabled(model.updater == nil)
+        }
+        #endif
         CommandGroup(after: .newItem) {
             Button("New Post") { session?.compose() }
                 .keyboardShortcut("n")

@@ -14,7 +14,7 @@ struct LiquidXApp: App {
         .defaultSize(width: 1_180, height: 860)
         .windowToolbarStyle(.unified)
         #endif
-        .commands { LiquidCommands() }
+        .commands { LiquidCommands(model: model) }
 
         #if os(macOS)
         Settings {

@@ -104,8 +104,10 @@ It is clearly labelled in the app and off by default. Details:
 
 Mac builds are on the [Releases](https://github.com/dfrnoch/liquidX/releases)
 page: production versions, and nightly pre-releases of `main`. Open the DMG and
-drag LiquidX to Applications. How releases are made is described in
-[docs/releasing.md](docs/releasing.md).
+drag LiquidX to Applications. After that, LiquidX updates itself: it checks
+GitHub for new releases, and you can choose the Stable or Nightly channel in
+Settings ▸ Updates ([docs/updates.md](docs/updates.md)). How releases are made
+is described in [docs/releasing.md](docs/releasing.md).
 
 ## Build from source
 

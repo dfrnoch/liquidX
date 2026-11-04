@@ -34,7 +34,8 @@ swift Tools/ReleaseVersion.swift set 0.2.0           # rewrites Config/Shared.xc
   `nightly` always builds.
 - **Release:** a GitHub pre-release, never marked latest, titled
   `LiquidX <label>`. It carries `LiquidX-<label>.dmg` and its `.sha256`, with
-  release notes listing the commits since the previous nightly.
+  release notes listing the commits since the previous nightly, and the in-app
+  update files when notarized (below).
 - **Pruning:** only the newest 14 nightly releases are kept; older ones are
   deleted together with their tags.
 
@@ -65,6 +66,20 @@ protection requires pull requests, allow GitHub Actions to push, or change
 `MARKETING_VERSION` by pull request after the release; the release itself is
 already published. Commits made with `GITHUB_TOKEN` don't trigger CI.
 
+## In-app updates
+
+Notarized releases also carry the files the Mac app updates itself from
+([updates.md](updates.md)):
+
+- **`LiquidX-<label>.zip`:** the notarized, stapled app, packed with `ditto`.
+- **`update.json`:** `schema`, `label`, `build`, `channel`, `zip`, `zipSHA256`,
+  `zipSize`, `dmg` and `minimumSystemVersion`. The app compares only `build`.
+
+Users on the Stable channel see production releases. The Nightly channel sees
+nightlies and production releases, whichever build is newer. Releases built
+without the Developer ID secrets get no update files, so the app never offers
+them.
+
 ## Signing and notarization
 
 The bundle ID is `dev.frnoch.liquidx`. Without secrets, releases are signed ad
@@ -74,7 +89,9 @@ so.
 
 With these four repository secrets, `build-dmg.yml` signs the app with David
 Frnoch's Developer ID (team `ZJ37A69485`), notarizes and staples the app and the
-DMG, and checks that Gatekeeper accepts both:
+DMG, and checks that Gatekeeper accepts both. It also checks that the embedded
+update installer (`LiquidXUpdateInstaller.xpc`) is signed by the same team and
+isn't sandboxed:
 
 - `DEVELOPER_ID_CERTIFICATE_BASE64`: the exported Developer ID Application
   identity, as base64-encoded PKCS#12.

@@ -99,6 +99,10 @@ public struct SettingsView: View {
                 .disabled(clearedCache)
             }
 
+            #if os(macOS)
+            UpdateSettingsSection(updater: model.updater)
+            #endif
+
             Section("About") {
                 LabeledContent("Version", value: versionText)
                 Link("Source Code on GitHub", destination: URL(string: "https://github.com/dfrnoch/liquidX")!)

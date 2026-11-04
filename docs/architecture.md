@@ -15,6 +15,10 @@ XKit (Sendable, nonisolated)
   Wire + Assembler   ── v2 JSON → XPost / XUser / XMedia (rich text pre-rendered)
   OAuth              ── PKCE authorize request, token redeem/refresh/revoke, Keychain
   ImagePipeline      ── URLCache bytes → ImageIO thumbnails → bounded LRU of CGImages
+  Updates (Mac)      ── GitHub release feed, download and checks → AppUpdater (LiquidUI)
+        │
+LiquidUpdateSupport  ── signature/bundle checks + swap, shared with
+                        UpdateInstaller/ (unsandboxed XPC service in the Mac app)
 ```
 
 ## Data flow

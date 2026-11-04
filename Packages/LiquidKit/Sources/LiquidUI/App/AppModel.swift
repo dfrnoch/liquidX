@@ -53,6 +53,10 @@ public final class AppModel {
     }
 
     let bundledClientID: String
+    #if os(macOS)
+    /// In-app updates from GitHub releases; `nil` in development builds and UI tests.
+    let updater: AppUpdater?
+    #endif
     private let credentials: any CredentialStore
     private let webCredentials: any WebCredentialStore
     private let launchDemo: Bool
@@ -77,6 +81,9 @@ public final class AppModel {
         showsAvatarColumn = defaults.object(forKey: "LiquidX.avatarColumn") == nil || defaults.bool(forKey: "LiquidX.avatarColumn")
         windowTheme = defaults.string(forKey: "LiquidX.windowTheme").flatMap(WindowTheme.init(rawValue:)) ?? .classic
         launchDemo = defaults.bool(forKey: "LiquidXDemo")
+        #if os(macOS)
+        updater = AppUpdater.make(bundle: bundle, defaults: defaults)
+        #endif
         let uiTesting = defaults.bool(forKey: "LiquidXUITesting")
         if uiTesting {
             credentials = EphemeralCredentialStore()
@@ -104,6 +111,9 @@ public final class AppModel {
 
     func start() async {
         guard case .launching = phase else { return }
+        #if os(macOS)
+        updater?.start()
+        #endif
         #if DEBUG
         if UserDefaults.standard.bool(forKey: "LiquidXKeychainSelfTest") {
             Self.keychainSelfTest()
