@@ -1,7 +1,14 @@
 import SwiftUI
 
 enum Theme {
-    static let accent = Color(red: 0.114, green: 0.608, blue: 0.941)
+    #if os(macOS)
+    /// The accent chosen in System Settings ▸ Appearance; with "Multicolor", the
+    /// app's AccentColor asset (the same blue as on iOS).
+    static let accent = Color.accentColor
+    #else
+    /// X's blue, a shade darker (#1A8CD8). Keep in sync with the AccentColor asset.
+    static let accent = Color(red: 0.102, green: 0.549, blue: 0.847)
+    #endif
     static let like = Color(red: 0.976, green: 0.094, blue: 0.502)
     static let repost = Color(red: 0.0, green: 0.729, blue: 0.486)
     static let gold = Color(red: 0.89, green: 0.69, blue: 0.2)
