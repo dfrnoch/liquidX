@@ -100,6 +100,55 @@ enum GraphQLParser {
     }
 
     /// `1.1/search/typeahead.json`: suggested accounts and topics.
+    // MARK: - Trends
+
+    /// Trends anywhere in a response: GraphQL `TimelineTrend` items
+    /// (`name`, `trend_metadata`) and the REST guide's `trend` objects
+    /// (`name`, `trendMetadata`). Promoted trends are skipped.
+    static func trends(_ root: JSONObject) -> [XTrend] {
+        var trends: [XTrend] = []
+        var seen: Set<String> = []
+        func add(_ object: JSONObject, metadata: JSONObject?) {
+            guard let name = object.string("name"), seen.insert(name).inserted,
+                  object["promoted_metadata"] == nil, object["promotedMetadata"] == nil else { return }
+            let category = metadata?.string("domain_context") ?? metadata?.string("domainContext")
+            let description = metadata?.string("meta_description") ?? metadata?.string("metaDescription")
+            trends.append(XTrend(name: name, category: category, postCount: description.flatMap(postCount)))
+        }
+        func search(_ value: Any, depth: Int) {
+            guard depth < 24 else { return }
+            if let object = value as? JSONObject {
+                if object.string("__typename") == "TimelineTrend" {
+                    add(object, metadata: object.object("trend_metadata"))
+                    return
+                }
+                if let trend = object.object("trend"), trend["name"] != nil {
+                    add(trend, metadata: trend.object("trendMetadata") ?? trend.object("trend_metadata"))
+                    return
+                }
+                for child in object.values { search(child, depth: depth + 1) }
+            } else if let array = value as? [Any] {
+                for child in array { search(child, depth: depth + 1) }
+            }
+        }
+        search(root, depth: 0)
+        return trends
+    }
+
+    /// "12.3K posts", "1,204 posts", "2M posts" → a count; nil for other text.
+    static func postCount(_ description: String) -> Int? {
+        guard let match = description.firstMatch(of: /([0-9][0-9,]*(?:\.[0-9]+)?)\s*([KkMm]?)\s+(?:posts?|Tweets?)/) else {
+            return nil
+        }
+        guard let number = Double(match.output.1.replacing(",", with: "")) else { return nil }
+        let multiplier: Double = switch match.output.2.lowercased() {
+        case "k": 1_000
+        case "m": 1_000_000
+        default: 1
+        }
+        return Int((number * multiplier).rounded())
+    }
+
     static func suggestions(_ root: JSONObject) -> SearchSuggestions {
         let users = root.objects("users").compactMap { raw -> XUser? in
             guard let id = raw.string("id_str"), let username = raw.string("screen_name") else { return nil }

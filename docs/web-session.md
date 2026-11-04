@@ -40,7 +40,8 @@ LiquidX has two ways to connect:
 
 Operations used: `HomeTimeline`, `HomeLatestTimeline`, `UserByScreenName`,
 `UserTweets`, `UserTweetsAndReplies`, `TweetDetail`, `TweetResultByRestId`,
-`SearchTimeline` (also for mentions), `Bookmarks`, `Viewer`, `FavoriteTweet`,
+`SearchTimeline` (also for mentions), `Bookmarks`, `Viewer`, `GenericTimelineById`
+(the Explore "trending" timeline, for trends) with `ExploreSidebar` as a fallback, `FavoriteTweet`,
 `UnfavoriteTweet`, `CreateRetweet`, `DeleteRetweet`, `CreateBookmark`,
 `DeleteBookmark`, `CreateTweet`, plus REST `friendships/create|destroy`.
 
@@ -57,5 +58,7 @@ valid until it expires; end it at x.com → Settings → Security → Sessions.
   `x-client-transaction-id` header that x.com's own client sends.
 - Field names and response shapes match the parser fixtures in
   `Tests/XKitTests/Fixtures/web_home_timeline.json`.
-- Not yet verified: requests from the native client outside a browser (x.com
-  also loads a Cloudflare bot check, which could reject them).
+- (2026-11-04) Requests from the native Mac client succeed. `GenericTimelineById`
+  with the trending timeline ID returns 30 `TimelineTrend` items with `name` and
+  `trend_metadata.domain_context`, but no post counts. `ExploreSidebar` returns
+  the sidebar's few trends, also without counts. REST `2/guide.json` returns none.

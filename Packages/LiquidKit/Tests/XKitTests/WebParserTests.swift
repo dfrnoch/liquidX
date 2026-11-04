@@ -75,4 +75,31 @@ struct WebParserTests {
         #expect(credentials.cookieHeader == "auth_token=a; ct0=c; twid=u%3D42")
         #expect(!WebCredentials(cookies: ["ct0": "c"], userAgent: "UA").isComplete)
     }
+
+    /// The shape of `GenericTimelineById` (trending) as observed on 2026-11-04:
+    /// `TimelineTrend` items without post counts, plus a promoted trend.
+    @Test func trendsFromTheTrendingTimeline() throws {
+        let json = #"""
+        {"data":{"timeline":{"timeline":{"instructions":[{"type":"TimelineAddEntries","entries":[
+          {"entryId":"trend-1","content":{"itemContent":{"__typename":"TimelineTrend","itemType":"TimelineTrend","name":"#Lanternfall","rank":"1",
+            "trend_metadata":{"domain_context":"Gaming · Trending","url":{}}}}},
+          {"entryId":"trend-2","content":{"itemContent":{"__typename":"TimelineTrend","name":"Aurora","promoted_metadata":{"advertiser_name":"x"},
+            "trend_metadata":{"domain_context":"Promoted"}}}},
+          {"entryId":"trend-3","content":{"items":[{"item":{"itemContent":{"__typename":"TimelineTrend","name":"Line B",
+            "trend_metadata":{"domain_context":"Trending in Prague","meta_description":"2,104 posts"}}}}]}}
+        ]}]}}}}
+        """#
+        let root = try #require(try JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any])
+        #expect(GraphQLParser.trends(root) == [
+            XTrend(name: "#Lanternfall", category: "Gaming · Trending"),
+            XTrend(name: "Line B", category: "Trending in Prague", postCount: 2_104),
+        ])
+    }
+
+    @Test func trendPostCounts() {
+        #expect(GraphQLParser.postCount("12.3K posts") == 12_300)
+        #expect(GraphQLParser.postCount("1,204 posts") == 1_204)
+        #expect(GraphQLParser.postCount("2M posts") == 2_000_000)
+        #expect(GraphQLParser.postCount("Trending with #Glass") == nil)
+    }
 }

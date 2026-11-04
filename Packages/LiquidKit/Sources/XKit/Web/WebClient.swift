@@ -173,7 +173,25 @@ public actor WebClient: XService {
         return user
     }
 
-    public func trends() async throws -> [XTrend] { [] }
+    /// The Explore tab's "Trending" timeline; x.com's own sidebar query as a
+    /// fallback. Neither reports post counts.
+    public func trends() async throws -> [XTrend] {
+        do {
+            let data = try await graphQL("GenericTimelineById", variables: [
+                "timelineId": Self.trendingTimelineID,
+                "count": 20,
+                "withQuickPromoteEligibilityTweetFields": true,
+            ])
+            let trends = GraphQLParser.trends(data)
+            if !trends.isEmpty { return trends }
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {}
+        return GraphQLParser.trends(try await graphQL("ExploreSidebar", variables: [:]))
+    }
+
+    /// The "trending" Explore timeline, as x.com's web client names it.
+    private static let trendingTimelineID = "VGltZWxpbmU6DAC2CwABAAAACHRyZW5kaW5nAAA="
 
     // MARK: - Writes
 

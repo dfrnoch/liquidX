@@ -166,7 +166,7 @@ private struct TrendsColumn: View {
     @Environment(\.palette) private var palette
     @State private var query = ""
 
-    /// Trends exist for the official API (when the app has access) and the demo.
+    /// Trends come from every connection (the official API only when the app has access).
     /// Hidden on the Search screen, which lists the trends itself.
     private var showsTrendsCard: Bool {
         session.section != .search && (!session.trends.isEmpty || session.service.connection == .officialAPI)
