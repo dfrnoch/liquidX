@@ -23,6 +23,8 @@ public actor WebClient: XService {
     /// from GET to POST one by one, so a GET that 404s is retried as POST and
     /// remembered here (verified 2026-11-03: SearchTimeline, UserTweetsAndReplies).
     private var postOperations: Set<String> = ["HomeTimeline", "HomeLatestTimeline", "SearchTimeline", "UserTweetsAndReplies"]
+    /// Set when x.com doesn't know BookmarkAdd/BookmarkDelete for this session.
+    private var usesClassicBookmarks = false
 
     public init(credentials: WebCredentials, store: any WebCredentialStore) {
         self.credentials = credentials
@@ -207,7 +209,18 @@ public actor WebClient: XService {
         }
     }
 
+    /// x.com's new web client (x-web) bookmarks with BookmarkAdd/BookmarkDelete
+    /// (seen in its bundle on 2026-11-07); the classic operations stay as a
+    /// fallback for sessions still on the old client.
     public func setBookmarked(_ bookmarked: Bool, postID: String) async throws {
+        if !usesClassicBookmarks {
+            do {
+                _ = try await graphQL(bookmarked ? "BookmarkAdd" : "BookmarkDelete", variables: ["tweetId": postID], method: "POST")
+                return
+            } catch XAPIError.notFound {
+                usesClassicBookmarks = true
+            }
+        }
         _ = try await graphQL(bookmarked ? "CreateBookmark" : "DeleteBookmark", variables: ["tweet_id": postID], method: "POST")
     }
 

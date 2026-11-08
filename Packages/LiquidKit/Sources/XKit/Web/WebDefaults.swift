@@ -203,6 +203,17 @@ enum WebDefaults {
             features: [],
             fieldToggles: []
         ),
+        // From x.com's new web client (x-web) on 2026-11-07; takes `tweetId`.
+        "BookmarkAdd": WebOperation(
+            queryId: "9559L3Eb62SZndMSVHIeNw",
+            features: [],
+            fieldToggles: []
+        ),
+        "BookmarkDelete": WebOperation(
+            queryId: "jTTS9lZmxUq-eYwmY8pHiA",
+            features: [],
+            fieldToggles: []
+        ),
         "CreateBookmark": WebOperation(
             queryId: "aoDbu3RHznuiSkQ9aNM67Q",
             features: [],

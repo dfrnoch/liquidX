@@ -42,8 +42,9 @@ Operations used: `HomeTimeline`, `HomeLatestTimeline`, `UserByScreenName`,
 `UserTweets`, `UserTweetsAndReplies`, `TweetDetail`, `TweetResultByRestId`,
 `SearchTimeline` (also for mentions), `Bookmarks`, `Viewer`, `GenericTimelineById`
 (the Explore "trending" timeline, for trends) with `ExploreSidebar` as a fallback, `FavoriteTweet`,
-`UnfavoriteTweet`, `CreateRetweet`, `DeleteRetweet`, `CreateBookmark`,
-`DeleteBookmark`, `CreateTweet`, plus REST `friendships/create|destroy`.
+`UnfavoriteTweet`, `CreateRetweet`, `DeleteRetweet`, `BookmarkAdd` and
+`BookmarkDelete` (x.com's new web client; `CreateBookmark` and `DeleteBookmark`
+when x.com doesn't know them), `CreateTweet`, plus REST `friendships/create|destroy`.
 
 ## Signing out
 
