@@ -55,8 +55,7 @@ struct MacShell: View {
             }
         }
         .id(session.section)
-        .historyGestures(session.currentRouter)
-        .background(palette.column)
+        .historyGestures(session.currentRouter, fill: palette.column)
         .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).strokeBorder(Theme.hairline, lineWidth: 0.5))
         .updateBanner(model.updater)

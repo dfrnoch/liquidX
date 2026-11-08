@@ -45,8 +45,13 @@ enum Route: Hashable {
 @Observable
 final class Router {
     var path: [Route] = [] {
+        willSet { willChangePath?() }
         didSet { recordForward(from: oldValue) }
     }
+
+    /// Called before `path` changes, while the page being left is still on
+    /// screen (the Mac snapshots it for its back/forward swipes).
+    @ObservationIgnored var willChangePath: (() -> Void)?
 
     /// Routes to go forward to; the next one is last.
     private(set) var forwardRoutes: [Route] = []

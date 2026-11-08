@@ -76,13 +76,22 @@ extension View {
 /// pushed pages slide and fade in instead.
 struct PushAppearance: ViewModifier {
     @State private var isShown = false
+    #if os(macOS)
+    @Environment(\.skipsPushAppearance) private var skipsAnimation
+    #endif
 
     func body(content: Content) -> some View {
         #if os(macOS)
         content
             .opacity(isShown ? 1 : 0)
             .offset(x: isShown ? 0 : 36)
-            .onAppear { withAnimation(.smooth(duration: 0.32)) { isShown = true } }
+            .onAppear {
+                if skipsAnimation {
+                    isShown = true
+                } else {
+                    withAnimation(.smooth(duration: 0.32)) { isShown = true }
+                }
+            }
         #else
         content
         #endif
