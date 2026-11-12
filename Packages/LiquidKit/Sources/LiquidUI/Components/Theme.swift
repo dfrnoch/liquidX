@@ -174,6 +174,8 @@ struct PostStyle: Equatable {
 
     var name: Font { font(0, .bold) }
     var body: Font { font(0) }
+    /// The point size of `body`, for AppKit text.
+    var bodySize: CGFloat { base }
     var meta: Font { font(-1) }
     var label: Font { font(-1, .semibold) }
     var actions: Font { font(-2) }

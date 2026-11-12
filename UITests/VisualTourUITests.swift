@@ -99,6 +99,26 @@ final class VisualTourUITests: XCTestCase {
         snapshot(app, "deep-linked-post")
     }
 
+    #if os(macOS)
+    /// A click on a row's text opens the post; dragging across it selects
+    /// instead.
+    @MainActor
+    func testClickingPostTextOpensPost() {
+        let app = launch()
+        let text = app.textViews.firstMatch
+        XCTAssertTrue(text.waitForExistence(timeout: 10))
+        let postWindow = app.windows.matching(NSPredicate(format: "title == 'Post'")).firstMatch
+        let start = text.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.3))
+        start.click(forDuration: 0.1, thenDragTo: text.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.3)))
+        XCTAssertFalse(postWindow.waitForExistence(timeout: 2))
+        // The first click clears the selection, the next one opens the post.
+        text.click()
+        XCTAssertFalse(postWindow.waitForExistence(timeout: 2))
+        text.click()
+        XCTAssertTrue(postWindow.waitForExistence(timeout: 5))
+    }
+    #endif
+
     #if os(iOS)
     /// Leaving and returning to the app refreshes the timeline; posts that
     /// arrive while the reader is scrolled down are announced by a pill.

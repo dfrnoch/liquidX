@@ -108,7 +108,7 @@ struct PostRow: View {
     @ViewBuilder
     private var content: some View {
         // The thread line already shows who this replies to.
-        PostBody(post: post, showsReplyContext: !connectsAbove)
+        PostBody(post: post, showsReplyContext: !connectsAbove) { router.push(.post(post)) }
         PostActionBar(post: post)
             .padding(.top, 2)
     }
@@ -197,6 +197,9 @@ struct PostBody: View {
     /// The focused post on its own page uses larger text.
     var isFocused = false
     var showsReplyContext = true
+    /// Opens the post from a click on its text (Mac timeline rows). The text
+    /// stays selectable by dragging.
+    var onTextClick: (() -> Void)?
 
     @Environment(\.postStyle) private var style
     @Environment(\.impliedReplyRecipients) private var impliedRecipients
@@ -217,11 +220,15 @@ struct PostBody: View {
                     .foregroundStyle(.secondary)
             }
             if !post.text.characters.isEmpty {
-                Text(post.text)
-                    .font(isFocused ? style.detailBody : style.body)
-                    .tint(Theme.accent)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .textSelection(.enabled)
+                #if os(macOS)
+                if let onTextClick {
+                    ClickablePostText(text: post.text, fontSize: style.bodySize, onClick: onTextClick)
+                } else {
+                    text
+                }
+                #else
+                text
+                #endif
             }
             if !post.media.isEmpty {
                 MediaGrid(media: post.media) { index in
@@ -236,6 +243,14 @@ struct PostBody: View {
                 LinkCardView(card: card)
             }
         }
+    }
+
+    private var text: some View {
+        Text(post.text)
+            .font(isFocused ? style.detailBody : style.body)
+            .tint(Theme.accent)
+            .fixedSize(horizontal: false, vertical: true)
+            .textSelection(.enabled)
     }
 }
 
