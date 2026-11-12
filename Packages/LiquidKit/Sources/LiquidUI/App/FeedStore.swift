@@ -96,11 +96,15 @@ final class FeedStore {
                 items = Self.deduplicated(page.items)
                 nextCursor = page.nextCursor
                 reachedEnd = page.nextCursor == nil
-            } else if !page.items.isEmpty {
+            } else {
+                // Posts already on screen stay where they are: a ranked feed
+                // can serve them again, and they shouldn't jump back to the top.
                 let known = Set(items.map(\.id))
-                let fresh = page.items.filter { !known.contains($0.id) }
-                items = Self.deduplicated(page.items + items)
-                unseenCount += fresh.count
+                let fresh = Self.deduplicated(page.items.filter { !known.contains($0.id) })
+                if !fresh.isEmpty {
+                    items = fresh + items
+                    unseenCount += fresh.count
+                }
             }
             persist()
         } catch is CancellationError {

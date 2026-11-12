@@ -25,6 +25,11 @@ public actor WebClient: XService {
     private var postOperations: Set<String> = ["HomeTimeline", "HomeLatestTimeline", "SearchTimeline", "UserTweetsAndReplies"]
     /// Set when x.com doesn't know BookmarkAdd/BookmarkDelete for this session.
     private var usesClassicBookmarks = false
+    /// Posts "For you" has served, newest last. Sent back as `seenTweetIds`
+    /// so the ranking moves on instead of serving the same posts again.
+    private var seenForYou: [String] = []
+    private var sendsSeenIDs = true
+    private static let seenForYouLimit = 200
 
     public init(credentials: WebCredentials, store: any WebCredentialStore) {
         self.credentials = credentials
@@ -67,12 +72,39 @@ public actor WebClient: XService {
             "withCommunity": true,
         ]
         if case .older(let cursor) = page { variables["cursor"] = cursor }
-        let operation = filter.feed == .forYou ? "HomeTimeline" : "HomeLatestTimeline"
-        var result = try await timeline(operation, variables: variables, method: "POST", page: page)
+        var result: TimelinePage
+        if filter.feed == .forYou {
+            result = try await forYou(variables: variables, page: page)
+        } else {
+            result = try await timeline("HomeLatestTimeline", variables: variables, method: "POST", page: page)
+        }
         result.items.removeAll { item in
             (filter.hideReposts && item.repostedBy != nil) || (filter.hideReplies && !item.post.replyingTo.isEmpty)
         }
         return result
+    }
+
+    /// "For you" is ranked, not chronological, so a refresh can't stop at the
+    /// newest post on screen: it returns the posts this launch hasn't served yet.
+    private func forYou(variables: JSONObject, page: PageRequest) async throws -> TimelinePage {
+        var data: JSONObject
+        do {
+            var variables = variables
+            if sendsSeenIDs { variables["seenTweetIds"] = seenForYou }
+            data = try await graphQL("HomeTimeline", variables: variables, method: "POST")
+        } catch XAPIError.server where sendsSeenIDs && !seenForYou.isEmpty {
+            // In case x.com stops accepting the variable: the feed still loads,
+            // it just repeats itself more.
+            sendsSeenIDs = false
+            data = try await graphQL("HomeTimeline", variables: variables, method: "POST")
+        }
+        let (items, cursor) = GraphQLParser.timeline(data)
+        let seen = Set(seenForYou)
+        let unseen = items.filter { !seen.contains($0.id) }
+        seenForYou.append(contentsOf: unseen.map(\.id))
+        seenForYou.removeFirst(max(0, seenForYou.count - Self.seenForYouLimit))
+        if case .newest(_?) = page { return TimelinePage(items: unseen, nextCursor: nil) }
+        return TimelinePage(items: items, nextCursor: items.isEmpty ? nil : cursor)
     }
 
     public func posts(of userID: String, _ page: PageRequest, includeReplies: Bool) async throws -> TimelinePage {

@@ -46,6 +46,13 @@ Operations used: `HomeTimeline`, `HomeLatestTimeline`, `UserByScreenName`,
 `BookmarkDelete` (x.com's new web client; `CreateBookmark` and `DeleteBookmark`
 when x.com doesn't know them), `CreateTweet`, plus REST `friendships/create|destroy`.
 
+"For you" is ranked, so refreshing it can't stop at the newest post on screen.
+`HomeTimeline` gets the posts it has already served this launch as
+`seenTweetIds`, the variable that open-source x.com clients send. A refresh adds only the
+posts that aren't on screen yet. Whether x.com ranks differently because of
+`seenTweetIds` hasn't been verified. If x.com rejects the variable, `WebClient`
+stops sending it.
+
 ## Signing out
 
 Sign Out deletes the session from the Keychain. The x.com login itself remains
