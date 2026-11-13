@@ -85,11 +85,12 @@ struct WireTweet: Decodable {
     var public_metrics: Metrics?
     var entities: WireEntities?
     var note: NoteTweet?
+    var lang: String?
 
     enum CodingKeys: String, CodingKey {
         case id, text, author_id, created_at, conversation_id, in_reply_to_user_id
         case referenced_tweets, referenced_posts, attachments, public_metrics, entities
-        case note_tweet, note_post
+        case note_tweet, note_post, lang
     }
 
     init(from decoder: any Decoder) throws {
@@ -107,6 +108,7 @@ struct WireTweet: Decodable {
         entities = try c.decodeIfPresent(WireEntities.self, forKey: .entities)
         note = try c.decodeIfPresent(NoteTweet.self, forKey: .note_tweet)
             ?? c.decodeIfPresent(NoteTweet.self, forKey: .note_post)
+        lang = try c.decodeIfPresent(String.self, forKey: .lang)
     }
 
     func reference(_ type: String) -> String? {

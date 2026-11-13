@@ -1,4 +1,4 @@
-import Foundation
+public import Foundation
 
 /// Talks to x.com's own (unofficial) web API with a signed-in browser session.
 ///
@@ -227,6 +227,70 @@ public actor WebClient: XService {
     /// The "trending" Explore timeline, as x.com's web client names it.
     private static let trendingTimelineID = "VGltZWxpbmU6DAC2CwABAAAACHRyZW5kaW5nAAA="
 
+    // MARK: - Translation
+
+    /// Grok's translation, as x.com's "Show translation" asks for it. The text
+    /// streams in, so it is sent again with each new piece.
+    public nonisolated func translation(of post: XPost, into language: String) -> AsyncThrowingStream<AttributedString, any Error>? {
+        AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    try await self.translate(post, into: language) { continuation.yield($0) }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
+    /// x.com's new web client (x-web) calls api.x.com (seen in its bundle on
+    /// 2026-11-13); the `/i/api` path the other requests use is the fallback.
+    private static let translationURLs = [
+        URL(string: "https://api.x.com/2/grok/translation.json")!,
+        URL(string: "https://x.com/i/api/2/grok/translation.json")!,
+    ]
+
+    private func translate(_ post: XPost, into language: String, update: @Sendable (AttributedString) -> Void) async throws {
+        let config = try await loadConfig(refresh: false)
+        let body = try JSONSerialization.data(withJSONObject: ["content_type": "POST", "id": post.id, "dst_lang": language])
+        for (index, url) in Self.translationURLs.enumerated() {
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.httpBody = body
+            request = authorized(request, bearer: config.bearer)
+
+            let bytes: URLSession.AsyncBytes
+            let response: URLResponse
+            do {
+                (bytes, response) = try await session.bytes(for: request)
+            } catch let error as URLError where error.code == .cancelled {
+                throw CancellationError()
+            } catch {
+                throw XAPIError.transport(error.localizedDescription)
+            }
+            guard let http = response as? HTTPURLResponse else { throw XAPIError.transport("No HTTP response") }
+            absorbCookies(from: http)
+
+            guard (200..<300).contains(http.statusCode) else {
+                var data = Data()
+                for try await byte in bytes where data.count < 65_536 { data.append(byte) }
+                let error = failure(http, body: (try? JSONSerialization.jsonObject(with: data)) as? JSONObject, for: request)
+                if error == .notFound, index < Self.translationURLs.count - 1 { continue }
+                throw error
+            }
+            var translation = GrokTranslation()
+            for try await line in bytes.lines {
+                if try translation.add(line) { update(translation.rendered(for: post)) }
+            }
+            guard !translation.text.isEmpty else {
+                throw XAPIError.server(status: http.statusCode, message: String(localized: "x.com didn't send a translation."))
+            }
+            return
+        }
+    }
+
     // MARK: - Writes
 
     public func setLiked(_ liked: Bool, postID: String) async throws {
@@ -365,20 +429,7 @@ public actor WebClient: XService {
     }
 
     private func send(_ request: URLRequest, bearer: String) async throws -> JSONObject {
-        var request = request
-        request.setValue("Bearer \(bearer)", forHTTPHeaderField: "Authorization")
-        request.setValue(credentials.csrfToken, forHTTPHeaderField: "x-csrf-token")
-        request.setValue("OAuth2Session", forHTTPHeaderField: "x-twitter-auth-type")
-        request.setValue("yes", forHTTPHeaderField: "x-twitter-active-user")
-        request.setValue("en", forHTTPHeaderField: "x-twitter-client-language")
-        request.setValue(credentials.userAgent, forHTTPHeaderField: "User-Agent")
-        request.setValue(credentials.cookieHeader, forHTTPHeaderField: "Cookie")
-        request.setValue("https://x.com/home", forHTTPHeaderField: "Referer")
-        request.setValue("https://x.com", forHTTPHeaderField: "Origin")
-        if request.value(forHTTPHeaderField: "Content-Type") == nil {
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        }
-
+        let request = authorized(request, bearer: bearer)
         let data: Data
         let response: URLResponse
         do {
@@ -393,37 +444,59 @@ public actor WebClient: XService {
 
         let body = (try? JSONSerialization.jsonObject(with: data)) as? JSONObject
         let errors = body?.objects("errors") ?? []
+        if (200..<300).contains(http.statusCode), body?["data"] != nil || errors.isEmpty {
+            return body ?? [:]
+        }
+        throw failure(http, body: body, for: request)
+    }
+
+    /// The headers x.com's web client sends with every API request.
+    private func authorized(_ request: URLRequest, bearer: String) -> URLRequest {
+        var request = request
+        request.setValue("Bearer \(bearer)", forHTTPHeaderField: "Authorization")
+        request.setValue(credentials.csrfToken, forHTTPHeaderField: "x-csrf-token")
+        request.setValue("OAuth2Session", forHTTPHeaderField: "x-twitter-auth-type")
+        request.setValue("yes", forHTTPHeaderField: "x-twitter-active-user")
+        request.setValue("en", forHTTPHeaderField: "x-twitter-client-language")
+        request.setValue(credentials.userAgent, forHTTPHeaderField: "User-Agent")
+        request.setValue(credentials.cookieHeader, forHTTPHeaderField: "Cookie")
+        request.setValue("https://x.com/home", forHTTPHeaderField: "Referer")
+        request.setValue("https://x.com", forHTTPHeaderField: "Origin")
+        if request.value(forHTTPHeaderField: "Content-Type") == nil {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
+        return request
+    }
+
+    /// The error for a response that failed, or that answered with only `errors`.
+    private func failure(_ http: HTTPURLResponse, body: JSONObject?, for request: URLRequest) -> XAPIError {
+        let errors = body?.objects("errors") ?? []
         let codes = Set(errors.compactMap { $0.int("code") })
         let message = errors.first?.string("message")
 
         let status = http.statusCode
         #if DEBUG
-        if !(200..<300).contains(status) || !errors.isEmpty {
-            // Operation name and status only; never request or response content.
-            let operation = request.url?.lastPathComponent ?? "?"
-            FileHandle.standardError.write(Data("LiquidX web: \(request.httpMethod ?? "GET") \(operation) -> \(status) codes=\(codes.sorted())\n".utf8))
-        }
+        // Operation name and status only; never request or response content.
+        let operation = request.url?.lastPathComponent ?? "?"
+        FileHandle.standardError.write(Data("LiquidX web: \(request.httpMethod ?? "GET") \(operation) -> \(status) codes=\(codes.sorted())\n".utf8))
         #endif
-        if (200..<300).contains(status), body?["data"] != nil || errors.isEmpty {
-            return body ?? [:]
-        }
         if status == 401 || !codes.isDisjoint(with: [32, 89, 215]) {
-            throw XAPIError.unauthorized
+            return .unauthorized
         }
         if status == 429 || codes.contains(88) {
             let reset = http.value(forHTTPHeaderField: "x-rate-limit-reset").flatMap(TimeInterval.init)
-            throw XAPIError.rateLimited(resetsAt: reset.map(Date.init(timeIntervalSince1970:)))
+            return .rateLimited(resetsAt: reset.map(Date.init(timeIntervalSince1970:)))
         }
         if codes.contains(326) {
-            throw XAPIError.forbidden(String(localized: "X has temporarily locked your account. Open x.com in a browser to unlock it."))
+            return .forbidden(String(localized: "X has temporarily locked your account. Open x.com in a browser to unlock it."))
         }
         if status == 403, body == nil {
-            throw XAPIError.forbidden(String(localized: "x.com blocked the request. Try again later, or sign in again."))
+            return .forbidden(String(localized: "x.com blocked the request. Try again later, or sign in again."))
         }
         if status == 404 {
-            throw XAPIError.notFound
+            return .notFound
         }
-        throw XAPIError.server(status: status, message: message)
+        return .server(status: status, message: message)
     }
 
     /// x.com rotates cookies (notably `ct0`) via Set-Cookie; keep the session current.

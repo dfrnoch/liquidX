@@ -37,6 +37,9 @@ public struct XPost: Identifiable, Hashable, Sendable, Codable {
     /// The signed-in account's own engagement, when the source reports it
     /// (the x.com web API does; the official v2 timeline does not).
     public var viewer: ViewerState?
+    /// The language X detected for the text (`lang`), e.g. "it". X uses "und"
+    /// and codes such as "qme" (media links only) for text in no language.
+    public var language: String?
 
     public init(
         id: String,
@@ -50,7 +53,8 @@ public struct XPost: Identifiable, Hashable, Sendable, Codable {
         replyToID: String? = nil,
         quoted: XQuotedPost? = nil,
         card: XLinkCard? = nil,
-        viewer: ViewerState? = nil
+        viewer: ViewerState? = nil,
+        language: String? = nil
     ) {
         self.id = id
         self.author = author
@@ -64,6 +68,7 @@ public struct XPost: Identifiable, Hashable, Sendable, Codable {
         self.quoted = quoted
         self.card = card
         self.viewer = viewer
+        self.language = language
     }
 
     public var url: URL {
@@ -71,6 +76,23 @@ public struct XPost: Identifiable, Hashable, Sendable, Codable {
     }
 
     public var plainText: String { String(text.characters) }
+
+    /// X's language as a `Locale.Language`, or nil when the text has none.
+    public var spokenLanguage: Locale.Language? {
+        guard var code = language?.lowercased(), !code.isEmpty else { return nil }
+        // "und", "zxx" and the like, plus X's own "qam", "qct", "qht", "qme", "qst".
+        if ["und", "zxx", "art", "mis", "mul"].contains(code) || (code.count == 3 && code.hasPrefix("q")) { return nil }
+        // Twitter kept a few retired ISO codes.
+        code = ["in": "id", "iw": "he", "ji": "yi"][code] ?? code
+        return Locale.Language(identifier: code)
+    }
+
+    /// Whether to offer a translation to someone reading in `reader`, as X does
+    /// when a post's language isn't the reader's.
+    public func isTranslatable(for reader: Locale.Language) -> Bool {
+        guard !text.characters.isEmpty, let language = spokenLanguage?.languageCode else { return false }
+        return language != reader.languageCode
+    }
 }
 
 public struct ViewerState: Hashable, Sendable, Codable {

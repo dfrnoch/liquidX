@@ -132,6 +132,30 @@ public actor DemoService: XService {
         return DemoData.trends
     }
 
+    /// Canned English for the demo's posts in other languages, a few words at
+    /// a time like x.com's streamed translation. Anything else is left to the
+    /// device.
+    public nonisolated func translation(of post: XPost, into language: String) -> AsyncThrowingStream<AttributedString, any Error>? {
+        guard language == "en", let english = DemoData.translations[post.id] else { return nil }
+        let latency = latency
+        return AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    try await Task.sleep(for: latency * 2)
+                    let words = english.split(separator: " ")
+                    for end in stride(from: 3, through: words.count + 2, by: 3) {
+                        continuation.yield(RichText.make(words.prefix(end).joined(separator: " ")))
+                        try await Task.sleep(for: .milliseconds(90))
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
+    }
+
     public func setLiked(_ liked: Bool, postID: String) async throws {
         try await pause()
         if liked { self.liked.insert(postID) } else { self.liked.remove(postID) }

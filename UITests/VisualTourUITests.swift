@@ -99,6 +99,22 @@ final class VisualTourUITests: XCTestCase {
         snapshot(app, "deep-linked-post")
     }
 
+    /// The demo's Italian post translates to its canned English. XCUITest
+    /// waits for animations to settle, so only the result is captured; the
+    /// screen recording in the result bundle shows the animation.
+    @MainActor
+    func testTranslatePost() {
+        let app = launch(["-LiquidXOpenPost", "2025"])
+        let translate = app.buttons["Translate post"].firstMatch
+        XCTAssertTrue(translate.waitForExistence(timeout: 10))
+        translate.tap()
+        XCTAssertTrue(app.buttons["Show original"].firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Working on the forest'")).firstMatch.exists)
+        snapshot(app, "translated")
+        app.buttons["Show original"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["Show translation"].firstMatch.waitForExistence(timeout: 5))
+    }
+
     #if os(macOS)
     /// A click on a row's text opens the post; dragging across it selects
     /// instead.

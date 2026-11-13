@@ -48,6 +48,19 @@ public enum RichText {
         return result
     }
 
+    /// Plain translated text, linked like `original`: mentions, hashtags and
+    /// URLs by their patterns, and any link text the translation kept as is.
+    public static func translation(_ translated: String, of original: AttributedString) -> AttributedString {
+        var result = make(translated)
+        for run in original.runs {
+            guard let link = run.link else { continue }
+            let label = String(original[run.range].characters)
+            guard let range = result.range(of: label), result[range].runs.allSatisfy({ $0.link == nil }) else { continue }
+            result[range].link = link
+        }
+        return result
+    }
+
     static func decodeEntities(_ text: String) -> String {
         guard text.contains("&") else { return text }
         return text

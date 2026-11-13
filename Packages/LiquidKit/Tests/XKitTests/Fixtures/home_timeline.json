@@ -15,6 +15,7 @@
       "author_id": "11",
       "created_at": "2026-11-02T10:06:00.000Z",
       "conversation_id": "1850000000000000004",
+      "lang": "en",
       "referenced_tweets": [{ "type": "quoted", "id": "1850000000000000002" }],
       "entities": {
         "urls": [

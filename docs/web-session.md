@@ -44,7 +44,20 @@ Operations used: `HomeTimeline`, `HomeLatestTimeline`, `UserByScreenName`,
 (the Explore "trending" timeline, for trends) with `ExploreSidebar` as a fallback, `FavoriteTweet`,
 `UnfavoriteTweet`, `CreateRetweet`, `DeleteRetweet`, `BookmarkAdd` and
 `BookmarkDelete` (x.com's new web client; `CreateBookmark` and `DeleteBookmark`
-when x.com doesn't know them), `CreateTweet`, plus REST `friendships/create|destroy`.
+when x.com doesn't know them), `CreateTweet`, plus REST `friendships/create|destroy`
+and `2/grok/translation.json` (below).
+
+"Translate post" uses the Grok translation x.com's own "Show translation" uses.
+x.com's new web client (x-web) sends `POST https://api.x.com/2/grok/translation.json`
+with `{"content_type":"POST","id":"<post id>","dst_lang":"<language>"}` and reads
+the answer as newline-delimited JSON: each line is
+`{"result":{"content_type":"POST","text":"…","entities":{…}}}` with the next piece
+of the text, or `{"error":{"code":…,"message":"…"}}` (read from its bundle on
+2026-11-13). `WebClient` sends the same request with the session headers,
+retries on `x.com/i/api/2/grok/translation.json` if api.x.com answers 404, and
+shows the text as it streams in. `dst_lang` is the reader's language code
+("en", "cs"). This hasn't been tried with a live session yet. If it fails before
+any text arrives, the post is translated on the device instead.
 
 "For you" is ranked, so refreshing it can't stop at the newest post on screen.
 `HomeTimeline` gets the posts it has already served this launch as

@@ -228,7 +228,8 @@ enum GraphQLParser {
                 liked: legacy.bool("favorited") ?? false,
                 reposted: legacy.bool("retweeted") ?? false,
                 bookmarked: legacy.bool("bookmarked") ?? false
-            )
+            ),
+            language: legacy.string("lang")
         )
     }
 

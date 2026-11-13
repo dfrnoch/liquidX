@@ -220,15 +220,11 @@ struct PostBody: View {
                     .foregroundStyle(.secondary)
             }
             if !post.text.characters.isEmpty {
-                #if os(macOS)
-                if let onTextClick {
-                    ClickablePostText(text: post.text, fontSize: style.bodySize, onClick: onTextClick)
+                if session.translations.offers(post) {
+                    TranslatablePostText(post: post, font: font, isSelectable: isSelectable) { text }
                 } else {
                     text
                 }
-                #else
-                text
-                #endif
             }
             if !post.media.isEmpty {
                 MediaGrid(media: post.media) { index in
@@ -245,9 +241,33 @@ struct PostBody: View {
         }
     }
 
+    private var font: Font { isFocused ? style.detailBody : style.body }
+
+    /// Mac rows that open on a click select by dragging in their own text view.
+    private var isSelectable: Bool {
+        #if os(macOS)
+        onTextClick == nil
+        #else
+        true
+        #endif
+    }
+
+    @ViewBuilder
     private var text: some View {
+        #if os(macOS)
+        if let onTextClick {
+            ClickablePostText(text: post.text, fontSize: style.bodySize, onClick: onTextClick)
+        } else {
+            selectableText
+        }
+        #else
+        selectableText
+        #endif
+    }
+
+    private var selectableText: some View {
         Text(post.text)
-            .font(isFocused ? style.detailBody : style.body)
+            .font(font)
             .tint(Theme.accent)
             .fixedSize(horizontal: false, vertical: true)
             .textSelection(.enabled)
@@ -274,6 +294,12 @@ struct PostMenuItems: View {
         ShareLink(item: post.url) { Label("Share Post", systemImage: "square.and.arrow.up") }
         Button("Copy Link", systemImage: "link") { Pasteboard.copy(post.url.absoluteString) }
         Button("Copy Text", systemImage: "doc.on.doc") { Pasteboard.copy(post.plainText) }
+        if session.translations.offers(post) {
+            let translated = session.translations.state(for: post).phase == .translated
+            Button(translated ? "Show Original" : "Translate Post", systemImage: "translate") {
+                session.translations.toggle(post)
+            }
+        }
         Button("Open on x.com", systemImage: "safari") { openURL(post.url) }
         if !post.media.isEmpty {
             Divider()

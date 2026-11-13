@@ -33,6 +33,13 @@ LiquidUpdateSupport  ── signature/bundle checks + swap, shared with
   immediately, call the service in the background, and roll back on failure.
   The API v2 timeline doesn't say whether *you* liked a post, so that state
   starts as "not liked".
+- Translations live in a per-post `@Observable PostTranslation` held by the
+  session's `TranslationStore`. "Translate post" is offered when X's `lang`
+  differs from the reader's first preferred language. The service streams the
+  text if it can (`XService.translation(of:into:)`: Grok on x.com sessions,
+  canned English in the demo); otherwise, or if that fails, the text view's
+  `translationTask` translates it on device with Apple's Translation. The API
+  v2 has no translation endpoint.
 - Rich text (links, mentions, hashtags, cashtags) is built once, in `XKit`, as an
   `AttributedString`. In-app destinations are `liquidx://` URLs, routed by an
   `OpenURLAction` on each `NavigationStack` (`RoutedStack`).

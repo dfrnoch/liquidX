@@ -22,6 +22,7 @@ struct WebParserTests {
         #expect(post.media.first?.aspectRatio == 1.6)
         #expect(post.metrics.views == 9_200)
         #expect(post.viewer == ViewerState(liked: true, reposted: false, bookmarked: true))
+        #expect(post.language == "en")
         #expect(post.createdAt == Date(timeIntervalSince1970: 1_793_656_800))
     }
 

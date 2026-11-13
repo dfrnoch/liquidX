@@ -13,7 +13,7 @@
         "relationship_perspectives": { "following": true },
         "tweet_counts": { "tweets": 8402 }, "verification": { "verified": false } } } },
       "views": { "count": "9200", "state": "EnabledWithCount" },
-      "legacy": { "id_str": "100", "full_text": "Glass everywhere &amp; nowhere https://t.co/pic1", "created_at": "Mon Nov 02 22:00:00 +0000 2026",
+      "legacy": { "id_str": "100", "full_text": "Glass everywhere &amp; nowhere https://t.co/pic1", "created_at": "Mon Nov 02 22:00:00 +0000 2026", "lang": "en",
         "conversation_id_str": "100", "favorite_count": 259, "retweet_count": 41, "reply_count": 23, "quote_count": 2, "bookmark_count": 9,
         "favorited": true, "retweeted": false, "bookmarked": true,
         "entities": { "urls": [], "media": [ { "url": "https://t.co/pic1", "media_key": "3_1", "type": "photo" } ] },

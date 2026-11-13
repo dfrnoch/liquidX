@@ -9,6 +9,7 @@ final class Session {
     let service: any XService
     var me: XUser
     let engagement: EngagementStore
+    let translations: TranslationStore
 
     var section: AppSection = .home
     private(set) var routers: [AppSection: Router] = [:]
@@ -54,7 +55,9 @@ final class Session {
         mentions = FeedStore { page in try await service.mentions(page) }
         bookmarks = FeedStore { page in try await service.bookmarks(page) }
         engagement = EngagementStore(service: service)
+        translations = TranslationStore(service: service)
         engagement.session = self
+        translations.session = self
         for section in AppSection.allCases { routers[section] = Router() }
         homeStores[filter] = home
     }

@@ -67,7 +67,8 @@ enum DemoData {
     private static func make(
         _ id: String, _ username: String, minutesAgo: Double, now: Date, _ text: String,
         media: [XMedia] = [], replies: Int = 0, reposts: Int = 0, likes: Int = 0, views: Int? = nil,
-        replyingTo: [String] = [], replyTo: String? = nil, quoted: XQuotedPost? = nil, card: XLinkCard? = nil
+        replyingTo: [String] = [], replyTo: String? = nil, quoted: XQuotedPost? = nil, card: XLinkCard? = nil,
+        language: String = "en"
     ) -> XPost {
         XPost(
             id: id,
@@ -80,7 +81,8 @@ enum DemoData {
             replyingTo: replyingTo,
             replyToID: replyTo,
             quoted: quoted,
-            card: card
+            card: card,
+            language: language
         )
     }
 
@@ -103,6 +105,9 @@ enum DemoData {
             XTimelineItem(make("2004", "priyacodes", minutesAgo: 75, now: now,
                 "Reminder that every icon-only button needs an accessibility label. VoiceOver reading \"button, button, button\" is not a navigation experience. #a11y",
                 replies: 64, reposts: 512, likes: 3_870, views: 98_000)),
+            XTimelineItem(make("2025", "theom", minutesAgo: 100, now: now,
+                "Stasera si lavora alle lanterne del bosco. Ogni ombra ora si muove con il vento, e finalmente la foresta respira.",
+                replies: 8, reposts: 26, likes: 390, views: 7_600, language: "it")),
             XTimelineItem(make("2005", "theom", minutesAgo: 130, now: now,
                 "Lanternfall devlog #14: the lantern now casts real-time shadows and the whole forest feels alive. Four screenshots from today's build:",
                 media: [photo("lantern-1", 1600, 900), photo("lantern-2", 1600, 900), photo("lantern-3", 1600, 900), photo("lantern-4", 1600, 900)],
@@ -130,6 +135,9 @@ enum DemoData {
                 "Three frames from the coast trip.",
                 media: [photo("coast-1", 1200, 1600), photo("coast-2", 1600, 1200), photo("coast-3", 1600, 1200)],
                 replies: 9, reposts: 30, likes: 612, views: 17_800)),
+            XTimelineItem(make("2026", "jberg", minutesAgo: 610, now: now,
+                "Første snø på toppene i dag. Fjellet er stille, og lyset varer bare noen timer nå.",
+                media: [photo("first-snow", 1600, 1067)], replies: 4, reposts: 12, likes: 288, views: 6_900, language: "no")),
             XTimelineItem(quoteSource.withMetrics(replies: 44, reposts: 360, likes: 2_900, views: 120_000)),
             XTimelineItem(make("2013", "orbitlab", minutesAgo: 720, now: now,
                 "A new crewed mission patch was revealed today, and the design has a hidden constellation in it. Can you spot it?",
@@ -174,6 +182,12 @@ enum DemoData {
         ]
         return posts
     }
+
+    /// English for the posts above that aren't in English, by post ID.
+    static let translations: [String: String] = [
+        "2025": "Working on the forest lanterns tonight. Every shadow now moves with the wind, and the forest finally breathes.",
+        "2026": "First snow on the peaks today. The mountain is quiet, and the light only lasts a few hours now.",
+    ]
 
     static func arrivals(now: Date) -> [XPost] {
         [

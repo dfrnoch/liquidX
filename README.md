@@ -40,6 +40,8 @@
   Media tabs.
 - **Like, repost, quote, bookmark, reply and post**, with optimistic updates that
   roll back if X refuses the change.
+- **Translate posts** in other languages into yours, in place, as on X: with
+  Grok on x.com sessions, and on device with Apple's Translation otherwise.
 - **Notifications** (your mentions), **Bookmarks**, **Search** (recent posts,
   hashtags, `from:` queries) and personalized **trends** when your app has access.
 - **Keeps your place:** posts that arrive while you read appear above you,
@@ -149,6 +151,9 @@ The architecture is described in [docs/architecture.md](docs/architecture.md).
 
 - LiquidX talks to `api.x.com` and to X's image and video CDNs only. It has no
   analytics, no tracking and no server of its own.
+- Translating a post with the official API happens on your device, with
+  Apple's Translation; it may first download the languages from Apple. On an
+  x.com session, x.com translates it.
 - OAuth tokens are stored only in the Keychain on your device. Sign Out revokes
   the access token with X and deletes the tokens, the cached timeline and your
   cached profile.

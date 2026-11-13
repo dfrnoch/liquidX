@@ -55,7 +55,8 @@ struct Assembler {
             replyingTo: replyingTo,
             replyToID: tweet.reference("replied_to"),
             quoted: quotedID.flatMap { tweets[$0] }.map(quote),
-            card: card
+            card: card,
+            language: tweet.lang
         )
     }
 

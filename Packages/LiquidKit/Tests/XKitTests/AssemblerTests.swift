@@ -31,6 +31,7 @@ struct AssemblerTests {
         let post = try load().items[1].post
         #expect(post.plainText == "So good & worth reading example.com/article #SwiftUI cc @orbitlab")
         #expect(post.quoted?.author.username == "swiftweekly")
+        #expect(post.language == "en")
         #expect(post.card?.title == "An \"article\"")
         #expect(post.card?.host == "example.com")
         #expect(post.card?.imageURL?.absoluteString == "https://pbs.twimg.com/news_img/a.jpg")

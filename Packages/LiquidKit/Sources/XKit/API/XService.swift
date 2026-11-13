@@ -141,6 +141,10 @@ public protocol XService: Sendable {
     func post(id: String) async throws -> XPost
     func user(username: String) async throws -> XUser
     func trends() async throws -> [XTrend]
+    /// The post's text in `language` (a code such as "en"), sent again each
+    /// time more of it arrives. nil when the connection can't translate, as
+    /// the official API can't; the interface then translates on the device.
+    func translation(of post: XPost, into language: String) -> AsyncThrowingStream<AttributedString, any Error>?
 
     func setLiked(_ liked: Bool, postID: String) async throws
     func setReposted(_ reposted: Bool, postID: String) async throws
@@ -166,5 +170,9 @@ extension XService {
 
     public func searchSuggestions(_ query: String) async throws -> SearchSuggestions {
         SearchSuggestions()
+    }
+
+    public func translation(of post: XPost, into language: String) -> AsyncThrowingStream<AttributedString, any Error>? {
+        nil
     }
 }
